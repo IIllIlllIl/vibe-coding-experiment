@@ -1,0 +1,69 @@
+# Quick Reference - Key File Locations
+
+## Files to Modify
+
+### 1. Model Field Definition
+**File:** `repo/django/db/models/fields/__init__.py`
+**Line:** 1712
+**Class:** `FilePathField`
+**Method:** `formfield()`
+
+Change from:
+```python
+'path': self.path,
+```
+
+To:
+```python
+'path': self.path() if callable(self.path) else self.path,
+```
+
+### 2. Test File (Create New)
+**File:** `repo/tests/model_fields/test_filepathfield.py`
+**Lines:** New file (22 lines)
+
+Content:
+```python
+import os
+
+from django.db.models import FilePathField
+from django.test import SimpleTestCase
+
+
+class FilePathFieldTests(SimpleTestCase):
+    def test_path(self):
+        path = os.path.dirname(__file__)
+        field = FilePathField(path=path)
+        self.assertEqual(field.path, path)
+        self.assertEqual(field.formfield().path, path)
+
+    def test_callable_path(self):
+        path = os.path.dirname(__file__)
+
+        def generate_path():
+            return path
+
+        field = FilePathField(path=generate_path)
+        self.assertEqual(field.path(), path)
+        self.assertEqual(field.formfield().path, path)
+```
+
+## How to Test
+
+From the `repo/` directory:
+
+```bash
+# Run the specific test file
+python runtests.py tests.model_fields.test_filepathfield
+
+# Or run all model_fields tests
+python runtests.py tests.model_fields
+```
+
+## Verification Steps
+
+1. Modify the formfield() method in `repo/django/db/models/fields/__init__.py`
+2. Create the test file `repo/tests/model_fields/test_filepathfield.py`
+3. Run the tests to ensure both test cases pass
+4. Verify backward compatibility (string paths still work)
+5. Verify new functionality (callable paths work)

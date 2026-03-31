@@ -1,0 +1,80 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..32ea29e34f 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1708,8 +1708,9 @@ class FilePathField(Field):
+         return str(value)
+ 
+     def formfield(self, **kwargs):
++        path = self.path() if callable(self.path) else self.path
+         return super().formfield(**{
+-            'path': self.path,
++            'path': path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..0950158300 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -1,9 +1,15 @@
++import os
++
+ from django.apps import apps
+ from django.db import models
+ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def get_absolute_path():
++    return os.path.abspath(__file__)
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -185,6 +191,12 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(path, "django.db.models.FilePathField")
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
++        # A callable path is preserved as-is in deconstruction.
++        field = models.FilePathField(path=get_absolute_path)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs["path"], get_absolute_path)
+ 
+     def test_float_field(self):
+         field = models.FloatField()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..fed5b9214d 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -8,6 +8,10 @@ import re
+ import uuid
+ from unittest import mock
+ 
++
++def get_filepath():
++    return os.path.dirname(__file__)
++
+ import custom_migration_operations.more_operations
+ import custom_migration_operations.operations
+ 
+@@ -339,6 +343,16 @@ class WriterTests(SimpleTestCase):
+         self.assertEqual(string, 'models.SET(42)')
+         self.serialize_round_trip(models.SET(42))
+ 
++    def test_serialize_filepathfield_callable_path(self):
++        field = models.FilePathField(path=get_filepath)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertIn('get_filepath', string)
++        self.assertIn('tests.migrations.test_writer', imports)
++        # Lambda / local functions should be rejected by the serializer.
++        field_lambda = models.FilePathField(path=lambda: '/tmp')
++        with self.assertRaisesMessage(ValueError, 'Cannot serialize function: lambda'):
++            MigrationWriter.serialize(field_lambda)
++
+     def test_serialize_datetime(self):
+         self.assertSerializedEqual(datetime.datetime.utcnow())
+         self.assertSerializedEqual(datetime.datetime.utcnow)

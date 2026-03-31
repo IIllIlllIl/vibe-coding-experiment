@@ -1,0 +1,90 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..4d7eb11151 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1709,7 +1709,7 @@ class FilePathField(Field):
+ 
+     def formfield(self, **kwargs):
+         return super().formfield(**{
+-            'path': self.path,
++            'path': self.path() if callable(self.path) else self.path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/docs/ref/models/fields.txt b/docs/ref/models/fields.txt
+index e352e8b007..b90346491c 100644
+--- a/docs/ref/models/fields.txt
++++ b/docs/ref/models/fields.txt
+@@ -868,6 +868,30 @@ directory on the filesystem. Has three special arguments, of which the first is
+     Required. The absolute filesystem path to a directory from which this
+     :class:`FilePathField` should get its choices. Example: ``"/home/images"``.
+ 
++    ``path`` may also be a callable that returns the absolute path. The callable
++    will be evaluated when the form field is created. This is useful for
++    dynamic paths that vary by machine or environment. Example::
++
++        import os
++        from django.conf import settings
++        from django.db import models
++
++        def get_image_path():
++            return os.path.join(settings.LOCAL_FILE_DIR, 'images')
++
++        class MyModel(models.Model):
++            image = models.FilePathField(path=get_image_path)
++
++    .. admonition:: Note
++
++        The callable must be importable (i.e., a module-level function or class
++        method, not a local function or lambda). This is required for migration
++        serialization.
++
++    .. versionchanged:: 2.2
++
++        ``path`` can now be a callable.
++
+ .. attribute:: FilePathField.match
+ 
+     Optional. A regular expression, as a string, that :class:`FilePathField`
+diff --git a/docs/releases/2.2.1.txt b/docs/releases/2.2.1.txt
+index 6438e7fc37..abb691aaff 100644
+--- a/docs/releases/2.2.1.txt
++++ b/docs/releases/2.2.1.txt
+@@ -77,3 +77,6 @@ Bugfixes
+ 
+ * Fixed a migration crash on Oracle and SQLite when adding a check constraint
+   with ``condition`` contains ``|`` (``OR``) operator (:ticket:`30412`).
++
++* :class:`~django.db.models.FilePathField` now accepts a callable ``path``.
++  This allows dynamic path resolution based on settings or environment.
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..29ad0ba418 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -4,6 +4,10 @@ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def generate_test_path():
++    return '/test/path'
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -186,6 +190,15 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        """Callable path is preserved in deconstruction."""
++        field = models.FilePathField(path=generate_test_path)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        # Callable is stored as-is, not evaluated
++        self.assertEqual(kwargs['path'], generate_test_path)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()

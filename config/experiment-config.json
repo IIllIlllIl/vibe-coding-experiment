@@ -1,0 +1,23 @@
+{
+  "experiment_id": "",
+  "task": {
+    "instance_id": "",
+    "repository": "",
+    "base_commit": "",
+    "problem_statement": "",
+    "test_patch": "",
+    "gold_patch": ""
+  },
+  "execution": {
+    "num_runs": 10,
+    "docker_image": "",
+    "claude_code_version": "",
+    "model": "",
+    "temperature": 0.0,
+    "permission_mode": ""
+  },
+  "environment": {
+    "fixed_environment_vars": {},
+    "disabled_features": ["memory", "hooks", "network_search"]
+  }
+}

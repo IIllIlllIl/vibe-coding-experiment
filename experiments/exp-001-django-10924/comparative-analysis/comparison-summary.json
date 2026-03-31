@@ -1,0 +1,782 @@
+{
+  "experiment": "exp-001-django-10924",
+  "generated_at": "2026-03-31T07:58:27.640384+00:00",
+  "plans": [
+    {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    },
+    {
+      "plan": "plan-02",
+      "total_runs": 10,
+      "successful_runs": 0,
+      "success_rate": 0.0,
+      "perfect_validation_rate": 0.0,
+      "status_breakdown": {
+        "partial": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 2572,
+        "max": 3052,
+        "avg": 2809.2,
+        "range": 480
+      },
+      "changed_files_count": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.125848,
+        "max": 15.806628,
+        "avg": 15.1456348,
+        "range": 1.6807800000000004
+      },
+      "validation": {
+        "average_functional_score": 0.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 0.5,
+        "perfect_runs": 0,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 52846.6,
+        "average_output_tokens": 9175.0,
+        "average_cache_read_input_tokens": 3332204.8,
+        "average_total_tokens": 62021.6
+      },
+      "variability_score": 580
+    },
+    {
+      "plan": "plan-03",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3168,
+        "max": 4786,
+        "avg": 4085.2,
+        "range": 1618
+      },
+      "changed_files_count": {
+        "min": 3,
+        "max": 4,
+        "avg": 3.9,
+        "range": 1
+      },
+      "duration_seconds": {
+        "min": 13.734905,
+        "max": 15.937226,
+        "avg": 15.1045896,
+        "range": 2.2023210000000013
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 63293.5,
+        "average_output_tokens": 13010.2,
+        "average_cache_read_input_tokens": 4404864.0,
+        "average_total_tokens": 76303.7
+      },
+      "variability_score": 1719
+    },
+    {
+      "plan": "plan-04",
+      "total_runs": 10,
+      "successful_runs": 0,
+      "success_rate": 0.0,
+      "perfect_validation_rate": 0.0,
+      "status_breakdown": {
+        "partial": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 1930,
+        "max": 2606,
+        "avg": 2210.6,
+        "range": 676
+      },
+      "changed_files_count": {
+        "min": 2,
+        "max": 3,
+        "avg": 2.2,
+        "range": 1
+      },
+      "duration_seconds": {
+        "min": 14.656575,
+        "max": 16.860043,
+        "avg": 15.570504099999999,
+        "range": 2.203468000000001
+      },
+      "validation": {
+        "average_functional_score": 0.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 0.5,
+        "perfect_runs": 0,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 63054.2,
+        "average_output_tokens": 9996.4,
+        "average_cache_read_input_tokens": 4314720.0,
+        "average_total_tokens": 73050.6
+      },
+      "variability_score": 777
+    },
+    {
+      "plan": "plan-05",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 6341,
+        "max": 8441,
+        "avg": 7157.0,
+        "range": 2100
+      },
+      "changed_files_count": {
+        "min": 5,
+        "max": 5,
+        "avg": 5.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.610138,
+        "max": 16.876279,
+        "avg": 15.880497199999999,
+        "range": 2.266141000000001
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 97656.9,
+        "average_output_tokens": 13578.8,
+        "average_cache_read_input_tokens": 4526470.4,
+        "average_total_tokens": 111235.7
+      },
+      "variability_score": 2200
+    },
+    {
+      "plan": "plan-06",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 2918,
+        "max": 3332,
+        "avg": 3193.8,
+        "range": 414
+      },
+      "changed_files_count": {
+        "min": 3,
+        "max": 3,
+        "avg": 3.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.598496,
+        "max": 16.494048,
+        "avg": 15.8095824,
+        "range": 1.8955519999999986
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 42308.9,
+        "average_output_tokens": 8871.3,
+        "average_cache_read_input_tokens": 2756876.8,
+        "average_total_tokens": 51180.2
+      },
+      "variability_score": 514
+    }
+  ],
+  "cross_plan": {
+    "highest_success_rate": {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    },
+    "lowest_success_rate": {
+      "plan": "plan-02",
+      "total_runs": 10,
+      "successful_runs": 0,
+      "success_rate": 0.0,
+      "perfect_validation_rate": 0.0,
+      "status_breakdown": {
+        "partial": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 2572,
+        "max": 3052,
+        "avg": 2809.2,
+        "range": 480
+      },
+      "changed_files_count": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.125848,
+        "max": 15.806628,
+        "avg": 15.1456348,
+        "range": 1.6807800000000004
+      },
+      "validation": {
+        "average_functional_score": 0.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 0.5,
+        "perfect_runs": 0,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 52846.6,
+        "average_output_tokens": 9175.0,
+        "average_cache_read_input_tokens": 3332204.8,
+        "average_total_tokens": 62021.6
+      },
+      "variability_score": 580
+    },
+    "highest_overall_validation": {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    },
+    "lowest_overall_validation": {
+      "plan": "plan-02",
+      "total_runs": 10,
+      "successful_runs": 0,
+      "success_rate": 0.0,
+      "perfect_validation_rate": 0.0,
+      "status_breakdown": {
+        "partial": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 2572,
+        "max": 3052,
+        "avg": 2809.2,
+        "range": 480
+      },
+      "changed_files_count": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.125848,
+        "max": 15.806628,
+        "avg": 15.1456348,
+        "range": 1.6807800000000004
+      },
+      "validation": {
+        "average_functional_score": 0.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 0.5,
+        "perfect_runs": 0,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 52846.6,
+        "average_output_tokens": 9175.0,
+        "average_cache_read_input_tokens": 3332204.8,
+        "average_total_tokens": 62021.6
+      },
+      "variability_score": 580
+    },
+    "most_variable_diff_size": {
+      "plan": "plan-05",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 6341,
+        "max": 8441,
+        "avg": 7157.0,
+        "range": 2100
+      },
+      "changed_files_count": {
+        "min": 5,
+        "max": 5,
+        "avg": 5.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.610138,
+        "max": 16.876279,
+        "avg": 15.880497199999999,
+        "range": 2.266141000000001
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 97656.9,
+        "average_output_tokens": 13578.8,
+        "average_cache_read_input_tokens": 4526470.4,
+        "average_total_tokens": 111235.7
+      },
+      "variability_score": 2200
+    },
+    "least_variable_diff_size": {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    },
+    "most_variable_changed_files": {
+      "plan": "plan-03",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3168,
+        "max": 4786,
+        "avg": 4085.2,
+        "range": 1618
+      },
+      "changed_files_count": {
+        "min": 3,
+        "max": 4,
+        "avg": 3.9,
+        "range": 1
+      },
+      "duration_seconds": {
+        "min": 13.734905,
+        "max": 15.937226,
+        "avg": 15.1045896,
+        "range": 2.2023210000000013
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 63293.5,
+        "average_output_tokens": 13010.2,
+        "average_cache_read_input_tokens": 4404864.0,
+        "average_total_tokens": 76303.7
+      },
+      "variability_score": 1719
+    },
+    "least_variable_changed_files": {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    },
+    "most_variable_duration": {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    },
+    "least_variable_duration": {
+      "plan": "plan-02",
+      "total_runs": 10,
+      "successful_runs": 0,
+      "success_rate": 0.0,
+      "perfect_validation_rate": 0.0,
+      "status_breakdown": {
+        "partial": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 2572,
+        "max": 3052,
+        "avg": 2809.2,
+        "range": 480
+      },
+      "changed_files_count": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.125848,
+        "max": 15.806628,
+        "avg": 15.1456348,
+        "range": 1.6807800000000004
+      },
+      "validation": {
+        "average_functional_score": 0.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 0.5,
+        "perfect_runs": 0,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 52846.6,
+        "average_output_tokens": 9175.0,
+        "average_cache_read_input_tokens": 3332204.8,
+        "average_total_tokens": 62021.6
+      },
+      "variability_score": 580
+    },
+    "most_variable_overall": {
+      "plan": "plan-05",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 6341,
+        "max": 8441,
+        "avg": 7157.0,
+        "range": 2100
+      },
+      "changed_files_count": {
+        "min": 5,
+        "max": 5,
+        "avg": 5.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 14.610138,
+        "max": 16.876279,
+        "avg": 15.880497199999999,
+        "range": 2.266141000000001
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 97656.9,
+        "average_output_tokens": 13578.8,
+        "average_cache_read_input_tokens": 4526470.4,
+        "average_total_tokens": 111235.7
+      },
+      "variability_score": 2200
+    },
+    "least_variable_overall": {
+      "plan": "plan-01",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "success_rate": 1.0,
+      "perfect_validation_rate": 1.0,
+      "status_breakdown": {
+        "success": 10
+      },
+      "status_diversity": 1,
+      "diff_size_bytes": {
+        "min": 3590,
+        "max": 3815,
+        "avg": 3716.1,
+        "range": 225
+      },
+      "changed_files_count": {
+        "min": 4,
+        "max": 4,
+        "avg": 4.0,
+        "range": 0
+      },
+      "duration_seconds": {
+        "min": 13.4468,
+        "max": 15.812512,
+        "avg": 15.147350699999999,
+        "range": 2.3657120000000003
+      },
+      "validation": {
+        "average_functional_score": 1.0,
+        "average_regression_score": 1.0,
+        "average_overall_score": 1.0,
+        "perfect_runs": 10,
+        "total_validated": 10
+      },
+      "token_usage": {
+        "average_input_tokens": 31090.1,
+        "average_output_tokens": 5121.7,
+        "average_cache_read_input_tokens": 1486745.6,
+        "average_total_tokens": 36211.8
+      },
+      "variability_score": 325
+    }
+  }
+}

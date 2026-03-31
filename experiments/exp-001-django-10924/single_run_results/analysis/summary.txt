@@ -1,0 +1,32 @@
+Experiment: exp-001-django-10924
+Generated: 2026-03-30T13:21:23.077995
+Total runs: 1
+Successful: 1
+Failed: 0
+
+Files Changed Statistics:
+  Min: 4
+  Max: 4
+  Avg: 4.00
+
+Diff Size Statistics (bytes):
+  Min: 3817
+  Max: 3817
+  Avg: 3817.00
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=success, duration=198s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=766288, output_tokens=6042, cache_read_input_tokens=679168, tokens=772330
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 1
+Average functional score: 100.00%
+Average regression score: 100.00%
+Average overall score: 100.00%
+Perfect runs (100% overall): 1
+Runs with test file created: 1

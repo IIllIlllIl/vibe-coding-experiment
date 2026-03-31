@@ -1,0 +1,64 @@
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..1f9431b3e0 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -1,9 +1,15 @@
++import os
++
+ from django.apps import apps
+ from django.db import models
+ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def get_some_path():
++    return os.path.dirname(__file__)
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -186,6 +192,12 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_some_path)
++        _, _, args, kwargs = field.deconstruct()
++        self.assertEqual(args, [])
++        self.assertIs(kwargs["path"], get_some_path)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..4cb1847336 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -41,6 +41,10 @@ class TestModel1:
+     thing = models.FileField(upload_to=upload_to)
+ 
+ 
++def get_file_path():
++    return '/some/path/'
++
++
+ class OperationWriterTests(SimpleTestCase):
+ 
+     def test_empty_signature(self):
+@@ -373,6 +377,15 @@ class WriterTests(SimpleTestCase):
+             ("models.TextField(blank=True, null=True)", {'from django.db import models'})
+         )
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_file_path)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertEqual(
++            string,
++            "models.FilePathField(path=tests.migrations.test_writer.get_file_path)"
++        )
++        self.assertIn("from django.db import models", imports)
++
+     def test_serialize_settings(self):
+         self.assertSerializedEqual(SettingsReference(settings.AUTH_USER_MODEL, "AUTH_USER_MODEL"))
+         self.assertSerializedResultEqual(

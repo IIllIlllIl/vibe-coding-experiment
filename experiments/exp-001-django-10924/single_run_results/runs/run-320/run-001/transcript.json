@@ -1,0 +1,7 @@
+{
+  "stdout": "API Error: Unable to connect to API (ENOTFOUND)\n",
+  "stderr": "",
+  "exit_code": 1,
+  "command": "claude -p",
+  "cwd": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/runs/run-001/work"
+}

@@ -1,0 +1,48 @@
+{
+  "experiment": "exp-001-django-10924",
+  "generated_at": "2026-03-30T13:21:23.077995",
+  "total_runs": 1,
+  "successful_runs": 1,
+  "failed_runs": 0,
+  "run_statuses": [
+    {
+      "run_id": 1,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T13:17:48.721978",
+      "end_time": "2026-03-30T13:21:07.089519",
+      "changed_files_count": 4,
+      "diff_size": 3817,
+      "error": ""
+    }
+  ],
+  "statistics": {
+    "files_changed": {
+      "min": 4,
+      "max": 4,
+      "avg": 4.0
+    },
+    "diff_size_bytes": {
+      "min": 3817,
+      "max": 3817,
+      "avg": 3817.0
+    }
+  },
+  "validation": {
+    "total_validated": 1,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 1,
+    "test_file_created_count": 1,
+    "per_run": [
+      {
+        "run_id": 1,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      }
+    ]
+  }
+}

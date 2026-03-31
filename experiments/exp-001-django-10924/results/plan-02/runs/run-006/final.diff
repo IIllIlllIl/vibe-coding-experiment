@@ -1,0 +1,66 @@
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..0bd92948e5 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -4,6 +4,10 @@ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def file_path_field_path():
++    return "/some/path"
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -185,6 +189,12 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(path, "django.db.models.FilePathField")
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
++        # Callable path should be preserved as-is, not resolved to a string.
++        field = models.FilePathField(path=file_path_field_path)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs["path"], file_path_field_path)
+ 
+     def test_float_field(self):
+         field = models.FloatField()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..747dfae0ba 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -41,6 +41,10 @@ class TestModel1:
+     thing = models.FileField(upload_to=upload_to)
+ 
+ 
++def file_path_field_path():
++    return "/some/path"
++
++
+ class OperationWriterTests(SimpleTestCase):
+ 
+     def test_empty_signature(self):
+@@ -475,6 +479,22 @@ class WriterTests(SimpleTestCase):
+         with self.assertRaisesMessage(ValueError, 'Could not find function upload_to in migrations.test_writer'):
+             self.serialize_round_trip(TestModel2.thing)
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        """FilePathField with a callable path preserves the callable reference."""
++        field = models.FilePathField(path=file_path_field_path)
++        # Verify the serialized form references the callable by dotted path.
++        string, imports = MigrationWriter.serialize(field)
++        self.assertIn('file_path_field_path', string)
++        # Round-trip: reconstruct and confirm path is still callable.
++        new_field = self.serialize_round_trip(field)
++        self.assertTrue(callable(new_field.path), "path should remain callable after round-trip")
++
++    def test_serialize_file_path_field_lambda_path(self):
++        """FilePathField with a lambda path cannot be serialized."""
++        field = models.FilePathField(path=lambda: "/some/path")
++        with self.assertRaisesMessage(ValueError, 'Cannot serialize function: lambda'):
++            MigrationWriter.serialize(field)
++
+     def test_serialize_managers(self):
+         self.assertSerializedEqual(models.Manager())
+         self.assertSerializedResultEqual(

@@ -1,0 +1,220 @@
+{
+  "experiment": "exp-001-django-10924",
+  "runs_directory": "/Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-03/runs",
+  "analysis_directory": "/Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-03/analysis",
+  "generated_at": "2026-03-30T22:37:00.522030+00:00",
+  "total_runs": 10,
+  "successful_runs": 10,
+  "failed_runs": 0,
+  "status_breakdown": {
+    "success": 10
+  },
+  "run_statuses": [
+    {
+      "run_id": 1,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T20:20:33.362322+00:00",
+      "end_time": "2026-03-30T20:20:48.496105+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4010,
+      "error": ""
+    },
+    {
+      "run_id": 2,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T20:31:54.284347+00:00",
+      "end_time": "2026-03-30T20:32:10.196711+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4741,
+      "error": ""
+    },
+    {
+      "run_id": 3,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T20:46:33.411958+00:00",
+      "end_time": "2026-03-30T20:46:48.649680+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4148,
+      "error": ""
+    },
+    {
+      "run_id": 4,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T21:09:02.327469+00:00",
+      "end_time": "2026-03-30T21:09:17.873002+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4037,
+      "error": ""
+    },
+    {
+      "run_id": 5,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T21:16:20.562952+00:00",
+      "end_time": "2026-03-30T21:16:34.897900+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4004,
+      "error": ""
+    },
+    {
+      "run_id": 6,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T21:26:38.849581+00:00",
+      "end_time": "2026-03-30T21:26:54.460801+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4078,
+      "error": ""
+    },
+    {
+      "run_id": 7,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T21:50:23.218311+00:00",
+      "end_time": "2026-03-30T21:50:39.155537+00:00",
+      "changed_files_count": 4,
+      "diff_size": 3813,
+      "error": ""
+    },
+    {
+      "run_id": 8,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T22:00:20.513124+00:00",
+      "end_time": "2026-03-30T22:00:34.248029+00:00",
+      "changed_files_count": 3,
+      "diff_size": 3168,
+      "error": ""
+    },
+    {
+      "run_id": 9,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T22:11:29.044989+00:00",
+      "end_time": "2026-03-30T22:11:44.328291+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4067,
+      "error": ""
+    },
+    {
+      "run_id": 10,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-03-30T22:36:44.173059+00:00",
+      "end_time": "2026-03-30T22:36:58.487952+00:00",
+      "changed_files_count": 4,
+      "diff_size": 4786,
+      "error": ""
+    }
+  ],
+  "statistics": {
+    "files_changed": {
+      "min": 3,
+      "max": 4,
+      "avg": 3.9,
+      "range": 1
+    },
+    "diff_size_bytes": {
+      "min": 3168,
+      "max": 4786,
+      "avg": 4085.2,
+      "range": 1618
+    }
+  },
+  "durations_seconds": {
+    "min": 13.734905,
+    "max": 15.937226,
+    "avg": 15.1045896,
+    "range": 2.2023210000000013
+  },
+  "tokens": {
+    "average_input_tokens": 63293.5,
+    "average_output_tokens": 13010.2,
+    "average_cache_read_input_tokens": 4404864.0,
+    "average_total_tokens": 76303.7
+  },
+  "validation": {
+    "total_validated": 10,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 10,
+    "test_file_created_count": 10,
+    "per_run": [
+      {
+        "run_id": 1,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 2,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 3,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 4,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 5,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 6,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 7,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 8,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 9,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      },
+      {
+        "run_id": 10,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": true
+      }
+    ]
+  }
+}

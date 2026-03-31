@@ -1,0 +1,18 @@
+# Experiment runner scripts (scripts/)
+# run-experiment.py uses only stdlib; get-task-details.py needs datasets
+datasets>=4.0
+
+# Vendored swebench dependencies (datasets/swe-bench/)
+beautifulsoup4
+chardet
+docker
+ghapi
+GitPython
+modal
+python-dotenv
+requests
+
+# swebench optional dependencies used in this project
+anthropic>=0.80
+openai
+protobuf

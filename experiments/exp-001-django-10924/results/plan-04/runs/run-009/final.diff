@@ -1,0 +1,70 @@
+diff --git a/docs/releases/3.0.txt b/docs/releases/3.0.txt
+index b78d4bd6ab..6b1ab0bb09 100644
+--- a/docs/releases/3.0.txt
++++ b/docs/releases/3.0.txt
+@@ -186,7 +186,9 @@ Management Commands
+ Migrations
+ ~~~~~~~~~~
+ 
+-* ...
++* ``FilePathField`` now accepts a callable for ``path``. This allows the path
++  to be resolved at runtime rather than at migration writing time, making it
++  easier to use machine-dependent filesystem locations.
+ 
+ Models
+ ~~~~~~
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..b78e215780 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -1,3 +1,5 @@
++import os
++
+ from django.apps import apps
+ from django.db import models
+ from django.test import SimpleTestCase, override_settings
+@@ -186,6 +188,13 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        field = models.FilePathField(path=os.getcwd)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs['path'], os.getcwd)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..3a187c2538 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -41,6 +41,10 @@ class TestModel1:
+     thing = models.FileField(upload_to=upload_to)
+ 
+ 
++def get_file_upload_path():
++    return '/some/path'
++
++
+ class OperationWriterTests(SimpleTestCase):
+ 
+     def test_empty_signature(self):
+@@ -339,6 +343,15 @@ class WriterTests(SimpleTestCase):
+         self.assertEqual(string, 'models.SET(42)')
+         self.serialize_round_trip(models.SET(42))
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_file_upload_path)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertEqual(
++            string,
++            "models.FilePathField(path=migrations.test_writer.get_file_upload_path)"
++        )
++        self.assertIn('import migrations.test_writer', imports)
++
+     def test_serialize_datetime(self):
+         self.assertSerializedEqual(datetime.datetime.utcnow())
+         self.assertSerializedEqual(datetime.datetime.utcnow)

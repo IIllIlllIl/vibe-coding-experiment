@@ -1,0 +1,185 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..8d1645d67f 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1668,6 +1668,9 @@ class FilePathField(Field):
+         kwargs.setdefault('max_length', 100)
+         super().__init__(verbose_name, name, **kwargs)
+ 
++    def _resolve_path(self):
++        return self.path() if callable(self.path) else self.path
++
+     def check(self, **kwargs):
+         return [
+             *super().check(**kwargs),
+@@ -1709,7 +1712,7 @@ class FilePathField(Field):
+ 
+     def formfield(self, **kwargs):
+         return super().formfield(**{
+-            'path': self.path,
++            'path': self._resolve_path(),
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..c758967185 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -1,9 +1,15 @@
++import functools
++
+ from django.apps import apps
+ from django.db import models
+ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def get_filepath():
++    return '/some/absolute/path'
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -186,6 +192,21 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_filepath)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs["path"], get_filepath)
++
++    def test_file_path_field_partial_path(self):
++        partial_path = functools.partial(get_filepath)
++        field = models.FilePathField(path=partial_path)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs["path"].func, get_filepath)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/forms_tests/field_tests/test_filepathfield.py b/tests/forms_tests/field_tests/test_filepathfield.py
+index 44f6aff521..d1f82edfe1 100644
+--- a/tests/forms_tests/field_tests/test_filepathfield.py
++++ b/tests/forms_tests/field_tests/test_filepathfield.py
+@@ -1,5 +1,6 @@
+ import os.path
+ 
++from django.db import models
+ from django.forms import FilePathField, ValidationError
+ from django.test import SimpleTestCase
+ 
+@@ -97,3 +98,21 @@ class FilePathFieldTest(SimpleTestCase):
+             ('/filepathfield_test_dir/j', 'j'),
+             ('/filepathfield_test_dir/c/f', 'c/f'),
+         ])
++
++
++class FilePathFieldModelFormfieldTest(SimpleTestCase):
++    path = os.path.join(PATH, 'filepathfield_test_dir') + '/'
++
++    def test_callable_path_evaluated_in_formfield(self):
++        """model FilePathField evaluates a callable path when building formfield."""
++        resolved_path = self.path
++
++        def get_path():
++            return resolved_path
++
++        model_field = models.FilePathField(path=get_path)
++        form_field = model_field.formfield()
++        self.assertIsInstance(form_field, FilePathField)
++        self.assertEqual(form_field.path, resolved_path)
++        # Choices should be populated from the resolved directory.
++        self.assertTrue(len(form_field.choices) > 0)
+diff --git a/tests/migrations/test_autodetector.py b/tests/migrations/test_autodetector.py
+index b52852fb52..d41e0a6799 100644
+--- a/tests/migrations/test_autodetector.py
++++ b/tests/migrations/test_autodetector.py
+@@ -776,6 +776,50 @@ class AutodetectorTests(TestCase):
+             (value.func, value.args, value.keywords)
+         )
+ 
++    def test_file_path_field_callable_path(self):
++        def _filepath():
++            return '/some/path'
++
++        def filepath(key=None):
++            return functools.partial(_filepath) if key is None else key
++
++        # Identical callable path produces no migration.
++        before = [ModelState("testapp", "Author", [
++            ("id", models.AutoField(primary_key=True)),
++            ("fp", models.FilePathField(path=_filepath)),
++        ])]
++        after = [ModelState("testapp", "Author", [
++            ("id", models.AutoField(primary_key=True)),
++            ("fp", models.FilePathField(path=_filepath)),
++        ])]
++        changes = self.get_changes(before, after)
++        self.assertNumberMigrations(changes, 'testapp', 0)
++
++    def test_file_path_field_partial_path(self):
++        def _filepath(sub=''):
++            return '/some/path/' + sub
++
++        # Identical partial path produces no migration.
++        before = [ModelState("testapp", "Author", [
++            ("id", models.AutoField(primary_key=True)),
++            ("fp", models.FilePathField(path=functools.partial(_filepath, 'a'))),
++        ])]
++        after = [ModelState("testapp", "Author", [
++            ("id", models.AutoField(primary_key=True)),
++            ("fp", models.FilePathField(path=functools.partial(_filepath, 'a'))),
++        ])]
++        changes = self.get_changes(before, after)
++        self.assertNumberMigrations(changes, 'testapp', 0)
++
++        # Changed partial arguments produce AlterField.
++        args_changed = [ModelState("testapp", "Author", [
++            ("id", models.AutoField(primary_key=True)),
++            ("fp", models.FilePathField(path=functools.partial(_filepath, 'b'))),
++        ])]
++        changes = self.get_changes(before, args_changed)
++        self.assertNumberMigrations(changes, 'testapp', 1)
++        self.assertOperationTypes(changes, 'testapp', 0, ['AlterField'])
++
+     @mock.patch('django.db.migrations.questioner.MigrationQuestioner.ask_not_null_alteration',
+                 side_effect=AssertionError("Should not have prompted for not null addition"))
+     def test_alter_field_to_not_null_with_default(self, mocked_ask_method):
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..8e8d3ef719 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -41,6 +41,10 @@ class TestModel1:
+     thing = models.FileField(upload_to=upload_to)
+ 
+ 
++def filepath_field_path():
++    return '/some/path'
++
++
+ class OperationWriterTests(SimpleTestCase):
+ 
+     def test_empty_signature(self):
+@@ -475,6 +479,16 @@ class WriterTests(SimpleTestCase):
+         with self.assertRaisesMessage(ValueError, 'Could not find function upload_to in migrations.test_writer'):
+             self.serialize_round_trip(TestModel2.thing)
+ 
++    def test_serialize_file_path_field_callable(self):
++        """A FilePathField with a callable path round-trips through serialization."""
++        field = models.FilePathField(path=filepath_field_path)
++        self.serialize_round_trip(field)
++
++    def test_serialize_file_path_field_partial(self):
++        """A FilePathField with a functools.partial path round-trips through serialization."""
++        field = models.FilePathField(path=functools.partial(filepath_field_path))
++        self.serialize_round_trip(field)
++
+     def test_serialize_managers(self):
+         self.assertSerializedEqual(models.Manager())
+         self.assertSerializedResultEqual(

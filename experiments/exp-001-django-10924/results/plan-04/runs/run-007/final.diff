@@ -1,0 +1,60 @@
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..ee28542fb3 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -4,6 +4,10 @@ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def get_filepath():
++    return '/some/path'
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -186,6 +190,13 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_filepath)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs['path'], get_filepath)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..7cce75b89a 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -26,6 +26,10 @@ from django.utils.translation import gettext_lazy as _
+ from .models import FoodManager, FoodQuerySet
+ 
+ 
++def get_filepath():
++    return '/some/path'
++
++
+ class Money(decimal.Decimal):
+     def deconstruct(self):
+         return (
+@@ -339,6 +343,15 @@ class WriterTests(SimpleTestCase):
+         self.assertEqual(string, 'models.SET(42)')
+         self.serialize_round_trip(models.SET(42))
+ 
++    def test_serialize_filepathfield_callable_path(self):
++        field = models.FilePathField(path=get_filepath)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertEqual(
++            string,
++            "models.FilePathField(path=migrations.test_writer.get_filepath)"
++        )
++        self.assertIn('import migrations.test_writer', imports)
++
+     def test_serialize_datetime(self):
+         self.assertSerializedEqual(datetime.datetime.utcnow())
+         self.assertSerializedEqual(datetime.datetime.utcnow)

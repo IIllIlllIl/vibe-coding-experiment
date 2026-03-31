@@ -1,0 +1,60 @@
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..a2f030e0b1 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -186,6 +186,15 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        def mypath():
++            return "/some/path"
++        field = models.FilePathField(path=mypath)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs["path"], mypath)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..c9473d35e8 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -41,6 +41,10 @@ class TestModel1:
+     thing = models.FileField(upload_to=upload_to)
+ 
+ 
++def filepath_field_helper():
++    return "/some/path"
++
++
+ class OperationWriterTests(SimpleTestCase):
+ 
+     def test_empty_signature(self):
+@@ -373,6 +377,24 @@ class WriterTests(SimpleTestCase):
+             ("models.TextField(blank=True, null=True)", {'from django.db import models'})
+         )
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        field = models.FilePathField(path=filepath_field_helper)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertEqual(
++            string,
++            "models.FilePathField(path=migrations.test_writer.filepath_field_helper)"
++        )
++        self.assertIn('import migrations.test_writer', imports)
++        self.serialize_round_trip(field)
++        # Verify the round-tripped field still has a callable path.
++        reconstructed = models.FilePathField(**dict(field.deconstruct()[3]))
++        self.assertTrue(callable(reconstructed.path))
++
++    def test_serialize_file_path_field_lambda_path(self):
++        field = models.FilePathField(path=lambda: "/some/path")
++        with self.assertRaisesMessage(ValueError, 'Cannot serialize function: lambda'):
++            MigrationWriter.serialize(field)
++
+     def test_serialize_settings(self):
+         self.assertSerializedEqual(SettingsReference(settings.AUTH_USER_MODEL, "AUTH_USER_MODEL"))
+         self.assertSerializedResultEqual(

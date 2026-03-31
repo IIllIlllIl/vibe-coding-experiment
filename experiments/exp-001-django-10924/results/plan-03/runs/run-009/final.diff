@@ -1,0 +1,97 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..32ea29e34f 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1708,8 +1708,9 @@ class FilePathField(Field):
+         return str(value)
+ 
+     def formfield(self, **kwargs):
++        path = self.path() if callable(self.path) else self.path
+         return super().formfield(**{
+-            'path': self.path,
++            'path': path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..179a046302 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -1,9 +1,15 @@
++import os.path
++
+ from django.apps import apps
+ from django.db import models
+ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def filepathfield_callable_path():
++    return os.path.dirname(os.path.abspath(__file__))
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -186,6 +192,11 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        field = models.FilePathField(path=filepathfield_callable_path)
++        _, _, _, kwargs = field.deconstruct()
++        self.assertIs(kwargs["path"], filepathfield_callable_path)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/forms_tests/field_tests/test_filepathfield.py b/tests/forms_tests/field_tests/test_filepathfield.py
+index 44f6aff521..14cdfb63e1 100644
+--- a/tests/forms_tests/field_tests/test_filepathfield.py
++++ b/tests/forms_tests/field_tests/test_filepathfield.py
+@@ -97,3 +97,10 @@ class FilePathFieldTest(SimpleTestCase):
+             ('/filepathfield_test_dir/j', 'j'),
+             ('/filepathfield_test_dir/c/f', 'c/f'),
+         ])
++
++    def test_callable_path(self):
++        """A callable path is evaluated when the form field is created."""
++        f = FilePathField(path=lambda: self.path)
++        self.assertChoices(f, [
++            ('/filepathfield_test_dir/README', 'README'),
++        ] + self.expected_choices[:4])
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..554af6fd23 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -26,6 +26,10 @@ from django.utils.translation import gettext_lazy as _
+ from .models import FoodManager, FoodQuerySet
+ 
+ 
++def get_filepathfield_path():
++    return '/some/path'
++
++
+ class Money(decimal.Decimal):
+     def deconstruct(self):
+         return (
+@@ -475,6 +479,19 @@ class WriterTests(SimpleTestCase):
+         with self.assertRaisesMessage(ValueError, 'Could not find function upload_to in migrations.test_writer'):
+             self.serialize_round_trip(TestModel2.thing)
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        """FilePathField with a callable path serializes the callable reference."""
++        field = models.FilePathField(path=get_filepathfield_path)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertIn('get_filepathfield_path', string)
++        self.assertIn('migrations.test_writer', imports)
++
++    def test_serialize_file_path_field_lambda_path(self):
++        """FilePathField with a lambda path cannot be serialized."""
++        field = models.FilePathField(path=lambda: '/some/path')
++        with self.assertRaisesMessage(ValueError, 'Cannot serialize'):
++            MigrationWriter.serialize(field)
++
+     def test_serialize_managers(self):
+         self.assertSerializedEqual(models.Manager())
+         self.assertSerializedResultEqual(

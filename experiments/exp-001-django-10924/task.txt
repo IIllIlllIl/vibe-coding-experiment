@@ -1,0 +1,61 @@
+Task: Allow FilePathField path to accept a callable
+
+================================================================================
+PROBLEM STATEMENT
+================================================================================
+
+I have a special case where I want to create a model containing the path to some local files on the server/dev machine. Seeing as the place where these files are stored is different on different machines I have the following:
+
+import os
+from django.conf import settings
+from django.db import models
+
+class LocalFiles(models.Model):
+    name = models.CharField(max_length=255)
+    file = models.FilePathField(path=os.path.join(settings.LOCAL_FILE_DIR, 'example_dir'))
+
+Now when running manage.py makemigrations it will resolve the path based on the machine it is being run on. Eg: /home/<username>/server_files/example_dir
+
+I had to manually change the migration to include the os.path.join() part to not break this when running the migration on production/other machine.
+
+================================================================================
+REQUIREMENT
+================================================================================
+
+Allow FilePathField's `path` parameter to accept a callable (function) that returns a string path, similar to how FileField's `upload_to` accepts a callable.
+
+This would allow paths to be evaluated at runtime rather than at import time, enabling different paths on different environments without breaking migrations.
+
+================================================================================
+ACCEPTANCE CRITERIA
+================================================================================
+
+1. FilePathField should accept a callable for the `path` parameter
+2. When a callable is provided, it should be called to get the actual path when needed
+3. The callable should be properly serialized in migrations (using its import path)
+4. The form field should also handle callable paths correctly
+5. Both existing string paths and new callable paths should work
+
+Test cases to pass:
+- test_path: Verify that a string path works as before
+- test_callable_path: Verify that a callable path works correctly
+
+================================================================================
+KEY FILES TO MODIFY (likely)
+================================================================================
+
+1. django/db/models/fields/__init__.py - FilePathField class
+   - Modify the formfield() method to evaluate callable paths
+
+2. tests/model_fields/test_filepathfield.py - Test file (to be created)
+   - Add tests for callable path functionality
+
+================================================================================
+ADDITIONAL CONTEXT (from hints)
+================================================================================
+
+The solution should evaluate the callable in FilePathField.formfield() method.
+The model field can already accept a callable (migrations work), but the form field
+needs to evaluate it before use.
+
+Similar pattern exists in FileField.upload_to which accepts callables.

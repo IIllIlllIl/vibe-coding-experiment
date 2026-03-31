@@ -1,0 +1,48 @@
+{
+  "validation_directory": "/Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-04/runs/run-007/validation",
+  "validation_image": "swe-env:django-django-10924",
+  "patches_applied": {
+    "test_patch": true,
+    "claude_patch": true
+  },
+  "test_file_check": {
+    "test_file_expected": true,
+    "expected_test_file": "tests/model_fields/test_filepathfield.py",
+    "test_file_created": true,
+    "test_file_size": 623
+  },
+  "test_results": {
+    "success": false,
+    "fail_to_pass_results": {
+      "test_callable_path (model_fields.test_filepathfield.FilePathFieldTests)": "FAILED"
+    },
+    "pass_to_pass_results": {
+      "test_path (model_fields.test_filepathfield.FilePathFieldTests)": "PASSED"
+    },
+    "total_tests": 2,
+    "passed_tests": 1,
+    "failed_tests": 1,
+    "output": "Obtaining file:///workspace\n  Installing build dependencies: started\n  Installing build dependencies: finished with status 'done'\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Getting requirements to build editable: started\n  Getting requirements to build editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nRequirement already satisfied: pytz in /usr/local/lib/python3.11/site-packages (from Django==3.0.dev20190502071320) (2026.1.post1)\nRequirement already satisfied: sqlparse in /usr/local/lib/python3.11/site-packages (from Django==3.0.dev20190502071320) (0.5.5)\nBuilding wheels for collected packages: Django\n  Building editable for Django (pyproject.toml): started\n  Building editable for Django (pyproject.toml): finished with status 'done'\n  Created wheel for Django: filename=django-3.0.dev20190502071320-0.editable-py3-none-any.whl size=5963 sha256=af563b61e14d6926fe45ffe0ab0bda6fd769df322f5fbfcfd26380cc937085d0\n  Stored in directory: /tmp/pip-ephem-wheel-cache-sp2mpy02/wheels/e2/2c/68/4c4a53c0aec7bc75cfaa7bb42a2542d1390caa1e3199ccef70\nSuccessfully built Django\nInstalling collected packages: Django\n  Attempting uninstall: Django\n    Found existing installation: Django 3.0.dev20190502071320\n    Uninstalling Django-3.0.dev20190502071320:\n      Successfully uninstalled Django-3.0.dev20190502071320\nSuccessfully installed Django-3.0.dev20190502071320\nTesting against Django installed in '/workspace/django' with up to 2 processes\nImporting application model_fields\nSkipping setup of unused database(s): default, other.\nSystem check identified no issues (0 silenced).\nWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\ntest_callable_path (model_fields.test_filepathfield.FilePathFieldTests.test_callable_path) ... ERROR\ntest_path (model_fields.test_filepathfield.FilePathFieldTests.test_path) ... ok\n\n======================================================================\nERROR: test_callable_path (model_fields.test_filepathfield.FilePathFieldTests.test_callable_path)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/tests/model_fields/test_filepathfield.py\", line 22, in test_callable_path\n    self.assertEqual(field.formfield().path, path)\n                     ^^^^^^^^^^^^^^^^^\n  File \"/workspace/django/db/models/fields/__init__.py\", line 1711, in formfield\n    return super().formfield(**{\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/django/db/models/fields/__init__.py\", line 890, in formfield\n    return form_class(**defaults)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/django/forms/fields.py\", line 1109, in __init__\n    for f in os.scandir(self.path):\n             ^^^^^^^^^^^^^^^^^^^^^\nTypeError: scandir: path should be string, bytes, os.PathLike, integer or None, not function\n\n----------------------------------------------------------------------\nRan 2 tests in 0.002s\n\nFAILED (errors=1)\n",
+    "image": "swe-env:django-django-10924",
+    "docker_command": [
+      "docker",
+      "run",
+      "--rm",
+      "-v",
+      "/Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-04/runs/run-007/validation/work:/workspace",
+      "-w",
+      "/workspace",
+      "swe-env:django-django-10924",
+      "bash",
+      "-lc",
+      "python -m pip install --disable-pip-version-check -e . && python tests/runtests.py -v 2 model_fields.test_filepathfield"
+    ],
+    "container_command": "python -m pip install --disable-pip-version-check -e . && python tests/runtests.py -v 2 model_fields.test_filepathfield",
+    "exit_code": 1
+  },
+  "correctness": {
+    "functional": 0.0,
+    "regression": 1.0,
+    "overall": 0.5
+  }
+}

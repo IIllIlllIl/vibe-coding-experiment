@@ -1,0 +1,31 @@
+{
+  "validation_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/runs/run-008/validation",
+  "patches_applied": {
+    "test_patch": true,
+    "claude_patch": true
+  },
+  "test_file_check": {
+    "test_file_expected": true,
+    "expected_test_file": "tests/model_fields/test_filepathfield.py",
+    "test_file_created": true,
+    "test_file_size": 623
+  },
+  "test_results": {
+    "success": true,
+    "fail_to_pass_results": {
+      "test_callable_path (model_fields.test_filepathfield.FilePathFieldTests)": "PASSED"
+    },
+    "pass_to_pass_results": {
+      "test_path (model_fields.test_filepathfield.FilePathFieldTests)": "PASSED"
+    },
+    "total_tests": 2,
+    "passed_tests": 2,
+    "failed_tests": 0,
+    "output": "Testing against Django installed in '/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/validation/work/django'\nImporting application model_fields\nSkipping setup of unused database(s): default, other.\nSystem check identified no issues (0 silenced).\ntest_callable_path (model_fields.test_filepathfield.FilePathFieldTests) ... ok\ntest_path (model_fields.test_filepathfield.FilePathFieldTests) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n"
+  },
+  "correctness": {
+    "functional": 1.0,
+    "regression": 1.0,
+    "overall": 1.0
+  }
+}

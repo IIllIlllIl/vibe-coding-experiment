@@ -1,0 +1,49 @@
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..5c8c4ceba1 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -186,6 +186,15 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        def _callable_path():
++            return '/some/path'
++        field = models.FilePathField(path=_callable_path)
++        name, path, args, kwargs = field.deconstruct()
++        self.assertEqual(path, "django.db.models.FilePathField")
++        self.assertEqual(args, [])
++        self.assertIs(kwargs['path'], _callable_path)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..7ebdaa3b41 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -35,6 +35,10 @@ class Money(decimal.Decimal):
+         )
+ 
+ 
++def get_file_path():
++    return '/some/callable/path'
++
++
+ class TestModel1:
+     def upload_to(self):
+         return '/somewhere/dynamic/'
+@@ -339,6 +343,13 @@ class WriterTests(SimpleTestCase):
+         self.assertEqual(string, 'models.SET(42)')
+         self.serialize_round_trip(models.SET(42))
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_file_path)
++        string, imports = MigrationWriter.serialize(field)
++        self.assertIn('get_file_path', string)
++        self.assertNotIn('/some/callable/path', string)
++        self.serialize_round_trip(field)
++
+     def test_serialize_datetime(self):
+         self.assertSerializedEqual(datetime.datetime.utcnow())
+         self.assertSerializedEqual(datetime.datetime.utcnow)

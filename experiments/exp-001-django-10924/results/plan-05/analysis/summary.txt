@@ -1,0 +1,53 @@
+Experiment: exp-001-django-10924
+Runs directory: /Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-05/runs
+Generated: 2026-03-31T04:57:11.027353+00:00
+Total runs: 10
+Successful: 10
+Failed: 0
+
+Status Breakdown:
+  success: 10
+
+Files Changed Statistics:
+  Min: 5
+  Max: 5
+  Avg: 5.00
+  Range: 0
+
+Diff Size Statistics (bytes):
+  Min: 6341
+  Max: 8441
+  Avg: 7157.00
+  Range: 2100
+
+Duration Statistics (seconds):
+  Min: 14.61
+  Max: 16.88
+  Avg: 15.88
+  Range: 2.27
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=success, duration=15s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=192520, output_tokens=17917, cache_read_input_tokens=5184128, tokens=210437
+Run 002: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=109972, output_tokens=19204, cache_read_input_tokens=3793408, tokens=129176
+Run 003: status=success, duration=15s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=50765, output_tokens=11167, cache_read_input_tokens=4009408, tokens=61932
+Run 004: status=success, duration=15s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=112587, output_tokens=14665, cache_read_input_tokens=6926336, tokens=127252
+Run 005: status=success, duration=15s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=45291, output_tokens=12281, cache_read_input_tokens=4106688, tokens=57572
+Run 006: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=268237, output_tokens=13153, cache_read_input_tokens=4327168, tokens=281390
+Run 007: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=46349, output_tokens=11626, cache_read_input_tokens=3777792, tokens=57975
+Run 008: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=57496, output_tokens=12834, cache_read_input_tokens=5153088, tokens=70330
+Run 009: status=success, duration=15s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=47928, output_tokens=12129, cache_read_input_tokens=4169344, tokens=60057
+Run 010: status=success, duration=14s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=1/1 (100%), input_tokens=45424, output_tokens=10812, cache_read_input_tokens=3817344, tokens=56236
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 10
+Average functional score: 100.00%
+Average regression score: 100.00%
+Average overall score: 100.00%
+Perfect runs (100% overall): 10
+Runs with test file created: 10

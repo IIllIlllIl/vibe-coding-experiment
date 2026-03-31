@@ -1,0 +1,4 @@
+django/db/models/fields/__init__.py
+docs/ref/models/fields.txt
+docs/releases/2.2.1.txt
+tests/field_deconstruction/tests.py

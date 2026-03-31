@@ -1,0 +1,120 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0c64748ccd..cd42461b0c 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1708,8 +1708,11 @@ class FilePathField(Field):
+         return str(value)
+ 
+     def formfield(self, **kwargs):
++        path = self.path
++        if callable(path):
++            path = path()
+         return super().formfield(**{
+-            'path': self.path,
++            'path': path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+diff --git a/tests/field_deconstruction/tests.py b/tests/field_deconstruction/tests.py
+index 2cf1f93e22..3217063756 100644
+--- a/tests/field_deconstruction/tests.py
++++ b/tests/field_deconstruction/tests.py
+@@ -1,9 +1,15 @@
++import os.path
++
+ from django.apps import apps
+ from django.db import models
+ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_lru_cache
+ 
+ 
++def get_filepath():
++    return os.path.dirname(os.path.abspath(__file__))
++
++
+ class FieldDeconstructionTests(SimpleTestCase):
+     """
+     Tests the deconstruct() method on all core fields.
+@@ -186,6 +192,11 @@ class FieldDeconstructionTests(SimpleTestCase):
+         self.assertEqual(args, [])
+         self.assertEqual(kwargs, {"recursive": True, "allow_folders": True, "max_length": 123})
+ 
++    def test_file_path_field_callable_path(self):
++        field = models.FilePathField(path=get_filepath)
++        _, _, _, kwargs = field.deconstruct()
++        self.assertIs(kwargs['path'], get_filepath)
++
+     def test_float_field(self):
+         field = models.FloatField()
+         name, path, args, kwargs = field.deconstruct()
+diff --git a/tests/forms_tests/field_tests/test_filepathfield.py b/tests/forms_tests/field_tests/test_filepathfield.py
+index 44f6aff521..130d073bea 100644
+--- a/tests/forms_tests/field_tests/test_filepathfield.py
++++ b/tests/forms_tests/field_tests/test_filepathfield.py
+@@ -1,5 +1,6 @@
+ import os.path
+ 
++from django.db import models
+ from django.forms import FilePathField, ValidationError
+ from django.test import SimpleTestCase
+ 
+@@ -97,3 +98,19 @@ class FilePathFieldTest(SimpleTestCase):
+             ('/filepathfield_test_dir/j', 'j'),
+             ('/filepathfield_test_dir/c/f', 'c/f'),
+         ])
++
++
++def _get_test_path():
++    return os.path.join(PATH, 'filepathfield_test_dir') + '/'
++
++
++class FilePathFieldCallablePathTest(SimpleTestCase):
++    def test_callable_path_resolved_in_formfield(self):
++        """Callable path is resolved when creating the form field, not at model field init."""
++        model_field = models.FilePathField(path=_get_test_path)
++        # The model field stores the callable, not the evaluated string.
++        self.assertIs(model_field.path, _get_test_path)
++        # formfield() evaluates the callable and passes the resolved string.
++        form_field = model_field.formfield()
++        self.assertIsInstance(form_field.path, str)
++        self.assertIn('filepathfield_test_dir', form_field.path)
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index 790d6a3efa..26444ae68a 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -41,6 +41,10 @@ class TestModel1:
+     thing = models.FileField(upload_to=upload_to)
+ 
+ 
++def get_filepath():
++    return os.path.dirname(os.path.abspath(__file__))
++
++
+ class OperationWriterTests(SimpleTestCase):
+ 
+     def test_empty_signature(self):
+@@ -475,6 +479,24 @@ class WriterTests(SimpleTestCase):
+         with self.assertRaisesMessage(ValueError, 'Could not find function upload_to in migrations.test_writer'):
+             self.serialize_round_trip(TestModel2.thing)
+ 
++    def test_serialize_file_path_field_callable_path(self):
++        """FilePathField with an importable callable path can be serialized."""
++        field = models.FilePathField(path=get_filepath)
++        self.assertSerializedResultEqual(
++            field,
++            (
++                "models.FilePathField(path=migrations.test_writer.get_filepath)",
++                {"from django.db import models", "import migrations.test_writer"},
++            )
++        )
++        self.assertSerializedFieldEqual(field)
++
++    def test_serialize_file_path_field_lambda_path(self):
++        """FilePathField with a lambda path cannot be serialized."""
++        field = models.FilePathField(path=lambda: '/some/path')
++        with self.assertRaisesMessage(ValueError, 'Cannot serialize function: lambda'):
++            MigrationWriter.serialize(field)
++
+     def test_serialize_managers(self):
+         self.assertSerializedEqual(models.Manager())
+         self.assertSerializedResultEqual(
