@@ -67,6 +67,7 @@ vibe-coding-experiment/
 │   ├── get-task-details.py    # Fetch task from SWE-bench dataset
 │   ├── list-swe-tasks.py      # List available SWE-bench tasks
 │   ├── list-featbench-tasks.py
+│   ├── make-plan-prompts.py   # Batch-generate plan prompts for tasks
 │   └── verify-setup.py        # Check environment prerequisites
 ├── datasets/
 │   ├── swe-bench-verified/    # SWE-bench Verified dataset
@@ -90,7 +91,8 @@ vibe-coding-experiment/
 │   │   └── task_full.json
 │   └── batch-summary.json      # Batch execution summary
 └── docs/
-    └── SETUP_COMPLETE.md
+    ├── SETUP_COMPLETE.md
+    └── RECONSTRUCTION_GUIDE.md
 ```
 
 ## Task Selection
@@ -183,6 +185,27 @@ python scripts/build-env.py experiments/django__django-11951
 # Validate the environment
 python scripts/check-env.py experiments/django__django-11951 --image swe-env:django-django-11951
 ```
+
+The env check runs a two-phase validation:
+
+| Phase | Patches Applied | Expected Results |
+|-------|----------------|-----------------|
+| **test_patch_only** | test_patch | fail_to_pass → FAIL, pass_to_pass → PASS |
+| **test_patch_plus_gold_patch** | test_patch + gold_patch | all tests → PASS |
+
+Phase 1 confirms the test infrastructure works and correctly detects the bug. Phase 2 confirms the gold patch fixes it.
+
+**Status levels:**
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| `pass` | Both phases passed | Proceed to experiments |
+| `fail` | Any phase failed | Fix Docker image before running experiments |
+
+On failure, the script generates diagnostic outputs:
+- `env-check.json` — full structured results
+- `env-diagnostic.md` — human-readable report with test output
+- `env-fix-prompt.md` — copy-paste prompt for Claude Code to fix the Docker image
 
 ### 7. Run Experiments
 
