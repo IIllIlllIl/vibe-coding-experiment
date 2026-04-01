@@ -1,0 +1,275 @@
+{
+  "selection_date": "2026-03-31T14:03:37.187539+00:00",
+  "random_seed": 42,
+  "total_tasks": 30,
+  "excluded_count": 0,
+  "excluded_reasons": {},
+  "distribution": {
+    "repo_distribution": {
+      "django": 4,
+      "sympy": 4,
+      "sphinx": 3,
+      "matplotlib": 3,
+      "scikit-learn": 3,
+      "astropy": 2,
+      "xarray": 2,
+      "pytest": 2,
+      "pylint": 2,
+      "requests": 2,
+      "seaborn": 2,
+      "flask": 1
+    },
+    "difficulty_distribution": {
+      "easy": 13,
+      "medium": 15,
+      "hard": 2
+    },
+    "type_distribution": {
+      "bug_fix": 13,
+      "feature": 14,
+      "refactor": 3
+    }
+  },
+  "tasks": [
+    {
+      "instance_id": "django__django-11951",
+      "repo": "django",
+      "type": "bug_fix",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 2
+    },
+    {
+      "instance_id": "django__django-12155",
+      "repo": "django",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 13
+    },
+    {
+      "instance_id": "django__django-13128",
+      "repo": "django",
+      "type": "bug_fix",
+      "difficulty": "medium",
+      "files_modified": 1,
+      "lines_changed": 22
+    },
+    {
+      "instance_id": "django__django-16263",
+      "repo": "django",
+      "type": "bug_fix",
+      "difficulty": "hard",
+      "files_modified": 4,
+      "lines_changed": 50
+    },
+    {
+      "instance_id": "sympy__sympy-12481",
+      "repo": "sympy",
+      "type": "bug_fix",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 5
+    },
+    {
+      "instance_id": "sympy__sympy-24443",
+      "repo": "sympy",
+      "type": "bug_fix",
+      "difficulty": "medium",
+      "files_modified": 1,
+      "lines_changed": 28
+    },
+    {
+      "instance_id": "sympy__sympy-20438",
+      "repo": "sympy",
+      "type": "refactor",
+      "difficulty": "medium",
+      "files_modified": 3,
+      "lines_changed": 13
+    },
+    {
+      "instance_id": "sympy__sympy-16597",
+      "repo": "sympy",
+      "type": "feature",
+      "difficulty": "hard",
+      "files_modified": 6,
+      "lines_changed": 41
+    },
+    {
+      "instance_id": "sphinx-doc__sphinx-9258",
+      "repo": "sphinx",
+      "type": "feature",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 2
+    },
+    {
+      "instance_id": "sphinx-doc__sphinx-10673",
+      "repo": "sphinx",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 3,
+      "lines_changed": 16
+    },
+    {
+      "instance_id": "sphinx-doc__sphinx-8548",
+      "repo": "sphinx",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 27
+    },
+    {
+      "instance_id": "matplotlib__matplotlib-25332",
+      "repo": "matplotlib",
+      "type": "bug_fix",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 7
+    },
+    {
+      "instance_id": "matplotlib__matplotlib-25479",
+      "repo": "matplotlib",
+      "type": "refactor",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 5
+    },
+    {
+      "instance_id": "matplotlib__matplotlib-24870",
+      "repo": "matplotlib",
+      "type": "bug_fix",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 18
+    },
+    {
+      "instance_id": "scikit-learn__scikit-learn-14053",
+      "repo": "scikit-learn",
+      "type": "feature",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 2
+    },
+    {
+      "instance_id": "scikit-learn__scikit-learn-25102",
+      "repo": "scikit-learn",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 16
+    },
+    {
+      "instance_id": "scikit-learn__scikit-learn-12682",
+      "repo": "scikit-learn",
+      "type": "bug_fix",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 47
+    },
+    {
+      "instance_id": "astropy__astropy-8872",
+      "repo": "astropy",
+      "type": "feature",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 6
+    },
+    {
+      "instance_id": "astropy__astropy-13977",
+      "repo": "astropy",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 1,
+      "lines_changed": 48
+    },
+    {
+      "instance_id": "pydata__xarray-4629",
+      "repo": "xarray",
+      "type": "bug_fix",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 2
+    },
+    {
+      "instance_id": "pydata__xarray-3305",
+      "repo": "xarray",
+      "type": "bug_fix",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 13
+    },
+    {
+      "instance_id": "pytest-dev__pytest-7490",
+      "repo": "pytest",
+      "type": "refactor",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 11
+    },
+    {
+      "instance_id": "pytest-dev__pytest-8399",
+      "repo": "pytest",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 7
+    },
+    {
+      "instance_id": "pylint-dev__pylint-4970",
+      "repo": "pylint",
+      "type": "feature",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 2
+    },
+    {
+      "instance_id": "pylint-dev__pylint-6528",
+      "repo": "pylint",
+      "type": "feature",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 19
+    },
+    {
+      "instance_id": "psf__requests-1766",
+      "repo": "requests",
+      "type": "feature",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 3
+    },
+    {
+      "instance_id": "psf__requests-1724",
+      "repo": "requests",
+      "type": "bug_fix",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 3
+    },
+    {
+      "instance_id": "mwaskom__seaborn-3069",
+      "repo": "seaborn",
+      "type": "feature",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 8
+    },
+    {
+      "instance_id": "mwaskom__seaborn-3187",
+      "repo": "seaborn",
+      "type": "bug_fix",
+      "difficulty": "medium",
+      "files_modified": 2,
+      "lines_changed": 8
+    },
+    {
+      "instance_id": "pallets__flask-5014",
+      "repo": "flask",
+      "type": "bug_fix",
+      "difficulty": "easy",
+      "files_modified": 1,
+      "lines_changed": 2
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+SWE-bench Verified Task Selection Report
+==================================================
+Selection date:  2026-03-31T14:03:37.187539+00:00
+Random seed:     42
+Total selected:  30
+Excluded:        0
+
+Exclusion Reasons:
+
+Repository Coverage:
+  astropy              2/2
+  django               4/4
+  flask                1/1
+  matplotlib           3/3
+  pylint               2/2
+  pytest               2/2
+  requests             2/2
+  scikit-learn         3/3
+  seaborn              2/2
+  sphinx               3/3
+  sympy                4/4
+  xarray               2/2
+  TOTAL                30/30
+
+Difficulty Distribution:
+  easy       13 (target: 9)
+  medium     15 (target: 15)
+  hard        2 (target: 6)
+
+Type Distribution:
+  bug_fix    13 (target: 14)
+  feature    14 (target: 10)
+  refactor    3 (target: 6)
+
+Selected Tasks:
+  #   Instance ID                                   Repo            Type       Diff     Files  Lines
+  -----------------------------------------------------------------------------------------------
+  1   django__django-11951                          django          bug_fix    easy     1      2
+  2   django__django-12155                          django          feature    medium   2      13
+  3   django__django-13128                          django          bug_fix    medium   1      22
+  4   django__django-16263                          django          bug_fix    hard     4      50
+  5   sympy__sympy-12481                            sympy           bug_fix    easy     1      5
+  6   sympy__sympy-24443                            sympy           bug_fix    medium   1      28
+  7   sympy__sympy-20438                            sympy           refactor   medium   3      13
+  8   sympy__sympy-16597                            sympy           feature    hard     6      41
+  9   sphinx-doc__sphinx-9258                       sphinx          feature    easy     1      2
+  10  sphinx-doc__sphinx-10673                      sphinx          feature    medium   3      16
+  11  sphinx-doc__sphinx-8548                       sphinx          feature    medium   2      27
+  12  matplotlib__matplotlib-25332                  matplotlib      bug_fix    easy     1      7
+  13  matplotlib__matplotlib-25479                  matplotlib      refactor   medium   2      5
+  14  matplotlib__matplotlib-24870                  matplotlib      bug_fix    medium   2      18
+  15  scikit-learn__scikit-learn-14053              scikit-learn    feature    easy     1      2
+  16  scikit-learn__scikit-learn-25102              scikit-learn    feature    medium   2      16
+  17  scikit-learn__scikit-learn-12682              scikit-learn    bug_fix    medium   2      47
+  18  astropy__astropy-8872                         astropy         feature    easy     1      6
+  19  astropy__astropy-13977                        astropy         feature    medium   1      48
+  20  pydata__xarray-4629                           xarray          bug_fix    easy     1      2
+  21  pydata__xarray-3305                           xarray          bug_fix    medium   2      13
+  22  pytest-dev__pytest-7490                       pytest          refactor   easy     1      11
+  23  pytest-dev__pytest-8399                       pytest          feature    medium   2      7
+  24  pylint-dev__pylint-4970                       pylint          feature    easy     1      2
+  25  pylint-dev__pylint-6528                       pylint          feature    medium   2      19
+  26  psf__requests-1766                            requests        feature    easy     1      3
+  27  psf__requests-1724                            requests        bug_fix    easy     1      3
+  28  mwaskom__seaborn-3069                         seaborn         feature    easy     1      8
+  29  mwaskom__seaborn-3187                         seaborn         bug_fix    medium   2      8
+  30  pallets__flask-5014                           flask           bug_fix    easy     1      2

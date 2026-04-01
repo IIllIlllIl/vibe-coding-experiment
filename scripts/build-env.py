@@ -47,21 +47,47 @@ def derive_image_tag(exp_path: Path, task: dict) -> str:
 
 
 def detect_python_version(task: dict) -> str:
+    """Detect appropriate Python version based on repo and version metadata."""
     version = str(task.get("version", "")).strip()
-    if version.startswith("3.0"):
+    repo = task.get("repo", "")
+
+    # requests 2.x uses collections.MutableMapping (removed in 3.10+)
+    if "requests" in repo and version.startswith("2."):
+        return "3.9"
+
+    # Django <3.2 needs older Python
+    if "django" in repo.lower():
+        if version.startswith("3.0") or version.startswith("3.1"):
+            return "3.9"
+        if version.startswith("2."):
+            return "3.9"
         return "3.11"
+
     if version.startswith("2."):
         return "3.10"
     return "3.11"
 
 
-def build_dockerfile(python_version: str) -> str:
+def detect_test_framework_for_build(task: dict) -> str:
+    """Detect test framework from task metadata. Returns 'django' or 'pytest'."""
+    repo = task.get("repo", "")
+    if "django" in repo.lower():
+        return "django"
+    return "pytest"
+
+
+def build_dockerfile(python_version: str, test_framework: str = "pytest") -> str:
+    pytest_install = ""
+    if test_framework == "pytest":
+        pytest_install = " && python -m pip install pytest"
+
     return f'''FROM python:{python_version}-slim
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/repo
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     {' '.join(APT_PACKAGES)} \
@@ -69,8 +95,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /opt/repo
 COPY repo /opt/repo
-RUN python -m pip install --upgrade pip setuptools wheel && \
-    python -m pip install -e . && \
+RUN python -m pip install --upgrade pip setuptools wheel{pytest_install} && \
+    (python -m pip install -e . || python -m pip install --no-build-isolation -e . || python -m pip install . || true) && \
     if [ -f tests/requirements/py3.txt ]; then python -m pip install -r tests/requirements/py3.txt; fi
 
 WORKDIR /workspace
@@ -88,8 +114,12 @@ def main():
     task = load_task(exp_path)
     image_tag = args.tag or derive_image_tag(exp_path, task)
     python_version = detect_python_version(task)
+    test_framework = detect_test_framework_for_build(task)
 
-    dockerfile_content = build_dockerfile(python_version)
+    print(f"  Python version: {python_version}")
+    print(f"  Test framework: {test_framework}")
+
+    dockerfile_content = build_dockerfile(python_version, test_framework)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)

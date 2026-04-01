@@ -25,6 +25,150 @@ def utc_now_iso() -> str:
 SUCCESS_STATUSES = {"success", "success_timeout", "success_with_error"}
 
 
+def detect_test_framework(task_metadata: Dict[str, Any], work_dir: Optional[Path] = None) -> str:
+    """Detect whether the project uses Django test runner or pytest.
+
+    Returns "django" or "pytest".
+    """
+    repo = task_metadata.get("repo", "")
+    # Django always uses its own test runner
+    if "django" in repo.lower():
+        return "django"
+
+    # Check for conftest.py or pytest config in work_dir
+    if work_dir and work_dir.exists():
+        for marker in ["conftest.py", "pytest.ini", "pyproject.toml", "setup.cfg"]:
+            if (work_dir / marker).exists():
+                if marker == "conftest.py":
+                    return "pytest"
+                try:
+                    content = (work_dir / marker).read_text()
+                    if "pytest" in content or "[tool:pytest]" in content or "[tool.pytest" in content:
+                        return "pytest"
+                except Exception:
+                    pass
+
+    # All non-Django repos in SWE-bench Verified use pytest
+    return "pytest"
+
+
+def build_docker_test_command(
+    framework: str,
+    fail_to_pass: List[str],
+    pass_to_pass: List[str],
+) -> str:
+    """Build the test command string to run inside the Docker container."""
+    all_tests = fail_to_pass + pass_to_pass
+
+    if framework == "django":
+        test_modules = set()
+        for test in all_tests:
+            match = re.match(r'\w+\s+\(([\w.]+)\.\w+\)', test)
+            if match:
+                test_modules.add(match.group(1))
+
+        if not test_modules:
+            return ""
+
+        module_args = " ".join(shlex.quote(module) for module in sorted(test_modules))
+        return (
+            "python -m pip install --disable-pip-version-check -e . && "
+            f"python tests/runtests.py -v 2 {module_args}"
+        )
+
+    # pytest: run individual test IDs directly
+    test_ids = shlex.split(" ".join(all_tests))
+    if not test_ids:
+        return ""
+
+    test_args = " ".join(shlex.quote(t) for t in test_ids)
+    return f"python -m pytest {test_args} -v --tb=short 2>&1"
+
+
+def parse_pytest_output(output: str, fail_to_pass: List[str], pass_to_pass: List[str]) -> Dict[str, Any]:
+    """Parse pytest verbose output and match against expected test names."""
+    passed_tests = set()
+    failed_tests = set()
+
+    # pytest -v output: "test/path/test_file.py::TestClass::test_method PASSED"
+    pytest_pattern = re.compile(
+        r"^(\S+?)(?:\[.+?\])?\s+(PASSED|FAILED|ERROR|XFAIL|XPASS)\b",
+        re.MULTILINE,
+    )
+    for match in pytest_pattern.finditer(output):
+        test_id = match.group(1)
+        status = match.group(2)
+        if status == "PASSED":
+            passed_tests.add(test_id)
+        else:
+            failed_tests.add(test_id)
+
+    return {
+        "passed_tests": len(passed_tests),
+        "failed_tests": len(failed_tests),
+        "passed_set": passed_tests,
+        "failed_set": failed_tests,
+    }
+
+
+def match_pytest_results(
+    expected_tests: List[str],
+    pytest_passed: set,
+    pytest_failed: set,
+    label: str,
+) -> tuple:
+    """Match expected test names against pytest output test IDs.
+
+    pytest outputs full IDs like 'test_file.py::TestClass::test_method'.
+    Expected names may be partial. We match by checking if the expected
+    name's test function appears in the pytest ID.
+
+    Returns (results_dict, success_bool).
+    """
+    results = {}
+    success = True
+
+    for test in expected_tests:
+        # Try exact match first
+        if test in pytest_passed:
+            results[test] = "PASSED"
+            print(f"   ✅ {test}: PASSED (expected to {label})")
+            continue
+        if test in pytest_failed:
+            results[test] = "FAILED"
+            success = False
+            print(f"   ❌ {test}: FAILED (expected to {label})")
+            continue
+
+        # Try partial match: extract function name and match
+        parts = test.split("::") if "::" in test else [test]
+        func_name = parts[-1] if parts else test
+        found = False
+        for pytest_id in pytest_passed:
+            if func_name in pytest_id or test in pytest_id:
+                results[test] = "PASSED"
+                print(f"   ✅ {test}: PASSED (expected to {label}, matched {pytest_id})")
+                found = True
+                break
+        if found:
+            continue
+        for pytest_id in pytest_failed:
+            if func_name in pytest_id or test in pytest_id:
+                results[test] = "FAILED"
+                success = False
+                print(f"   ❌ {test}: FAILED (expected to {label}, matched {pytest_id})")
+                found = True
+                break
+        if found:
+            continue
+
+        results[test] = "NOT_FOUND"
+        success = False
+        print(f"   ⚠️  {test}: NOT FOUND in test output")
+
+    return results, success
+
+
 def extract_token_usage(run_path: Path) -> Dict[str, int]:
     """Extract token usage details from transcript.json if available."""
     transcript_file = run_path / "transcript.json"
@@ -541,9 +685,13 @@ def run_tests_in_docker(
     fail_to_pass: List[str],
     pass_to_pass: List[str],
     image: str,
-    timeout_seconds: int = 300
+    timeout_seconds: int = 300,
+    task_metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Run Django tests inside a fixed Docker validation image and parse results."""
+    """Run tests inside a fixed Docker validation image and parse results.
+
+    Supports both Django and pytest frameworks automatically.
+    """
     results: Dict[str, Any] = {
         "success": False,
         "fail_to_pass_results": {},
@@ -560,22 +708,16 @@ def run_tests_in_docker(
         results["success"] = True
         return results
 
-    test_modules = set()
-    for test in fail_to_pass + pass_to_pass:
-        match = re.match(r'\w+\s+\(([\w.]+)\.\w+\)', test)
-        if match:
-            test_modules.add(match.group(1))
+    # Detect test framework
+    framework = detect_test_framework(task_metadata or {}, work_dir)
+    print(f"   Detected test framework: {framework}")
 
-    if not test_modules:
-        print("⚠️  Could not extract test module paths from test names")
-        results["output"] = "Could not extract test module paths"
+    container_cmd = build_docker_test_command(framework, fail_to_pass, pass_to_pass)
+    if not container_cmd:
+        print("⚠️  Could not build test command")
+        results["output"] = "Could not build test command"
         return results
 
-    module_args = " ".join(shlex.quote(module) for module in sorted(test_modules))
-    container_cmd = (
-        "python -m pip install --disable-pip-version-check -e . && "
-        f"python tests/runtests.py -v 2 {module_args}"
-    )
     cmd = [
         "docker", "run", "--rm",
         "-v", f"{work_dir.resolve()}:/workspace",
@@ -586,7 +728,7 @@ def run_tests_in_docker(
 
     print("🧪 Running validation tests in Docker...")
     print(f"   Image: {image}")
-    print(f"   Modules: {sorted(test_modules)}")
+    print(f"   Framework: {framework}")
     print(f"   Tests expected: {len(fail_to_pass) + len(pass_to_pass)}")
 
     try:
@@ -602,57 +744,76 @@ def run_tests_in_docker(
         results["docker_command"] = cmd
         results["container_command"] = container_cmd
         results["exit_code"] = process.returncode
+        results["framework"] = framework
 
-        status_pattern = re.compile(
-            r'^(\w+)\s+\(([\w.]+)\.(\w+)\)\s+\.\.\.\s+(ok|FAIL|FAILED|ERROR)$',
-            re.MULTILINE,
-        )
+        if framework == "django":
+            status_pattern = re.compile(
+                r'^(\w+)\s+\(([\w.]+)\.(\w+)\)\s+\.\.\.\s+(ok|FAIL|FAILED|ERROR)$',
+                re.MULTILINE,
+            )
 
-        passed_tests = set()
-        failed_tests = set()
-        for match in status_pattern.finditer(output):
-            displayed_name = match.group(1)
-            class_path = match.group(2)
-            status = match.group(4)
-            full_test_name = f"{displayed_name} ({class_path})"
-            if status == "ok":
-                passed_tests.add(full_test_name)
-            else:
-                failed_tests.add(full_test_name)
+            passed_tests = set()
+            failed_tests = set()
+            for match in status_pattern.finditer(output):
+                displayed_name = match.group(1)
+                class_path = match.group(2)
+                status = match.group(4)
+                full_test_name = f"{displayed_name} ({class_path})"
+                if status == "ok":
+                    passed_tests.add(full_test_name)
+                else:
+                    failed_tests.add(full_test_name)
 
-        results["total_tests"] = len(passed_tests) + len(failed_tests)
-        results["passed_tests"] = len(passed_tests)
-        results["failed_tests"] = len(failed_tests)
+            results["total_tests"] = len(passed_tests) + len(failed_tests)
+            results["passed_tests"] = len(passed_tests)
+            results["failed_tests"] = len(failed_tests)
 
-        ftp_success = True
-        for test in fail_to_pass:
-            if test in passed_tests:
-                results["fail_to_pass_results"][test] = "PASSED"
-                print(f"   ✅ {test}: PASSED (expected to pass)")
-            elif test in failed_tests:
-                results["fail_to_pass_results"][test] = "FAILED"
-                ftp_success = False
-                print(f"   ❌ {test}: FAILED (expected to pass)")
-            else:
-                results["fail_to_pass_results"][test] = "NOT_FOUND"
-                ftp_success = False
-                print(f"   ⚠️  {test}: NOT FOUND in test output")
+            ftp_success = True
+            for test in fail_to_pass:
+                if test in passed_tests:
+                    results["fail_to_pass_results"][test] = "PASSED"
+                    print(f"   ✅ {test}: PASSED (expected to pass)")
+                elif test in failed_tests:
+                    results["fail_to_pass_results"][test] = "FAILED"
+                    ftp_success = False
+                    print(f"   ❌ {test}: FAILED (expected to pass)")
+                else:
+                    results["fail_to_pass_results"][test] = "NOT_FOUND"
+                    ftp_success = False
+                    print(f"   ⚠️  {test}: NOT FOUND in test output")
 
-        ptp_success = True
-        for test in pass_to_pass:
-            if test in passed_tests:
-                results["pass_to_pass_results"][test] = "PASSED"
-                print(f"   ✅ {test}: PASSED (expected to pass)")
-            elif test in failed_tests:
-                results["pass_to_pass_results"][test] = "FAILED"
-                ptp_success = False
-                print(f"   ❌ {test}: FAILED (expected to pass)")
-            else:
-                results["pass_to_pass_results"][test] = "NOT_FOUND"
-                ptp_success = False
-                print(f"   ⚠️  {test}: NOT FOUND in test output")
+            ptp_success = True
+            for test in pass_to_pass:
+                if test in passed_tests:
+                    results["pass_to_pass_results"][test] = "PASSED"
+                    print(f"   ✅ {test}: PASSED (expected to pass)")
+                elif test in failed_tests:
+                    results["pass_to_pass_results"][test] = "FAILED"
+                    ptp_success = False
+                    print(f"   ❌ {test}: FAILED (expected to pass)")
+                else:
+                    results["pass_to_pass_results"][test] = "NOT_FOUND"
+                    ptp_success = False
+                    print(f"   ⚠️  {test}: NOT FOUND in test output")
 
-        results["success"] = ftp_success and ptp_success
+            results["success"] = ftp_success and ptp_success
+
+        else:
+            # pytest framework
+            parsed = parse_pytest_output(output, fail_to_pass, pass_to_pass)
+            results["total_tests"] = parsed["passed_tests"] + parsed["failed_tests"]
+            results["passed_tests"] = parsed["passed_tests"]
+            results["failed_tests"] = parsed["failed_tests"]
+
+            ftp_results, ftp_success = match_pytest_results(
+                fail_to_pass, parsed["passed_set"], parsed["failed_set"], "pass"
+            )
+            ptp_results, ptp_success = match_pytest_results(
+                pass_to_pass, parsed["passed_set"], parsed["failed_set"], "pass"
+            )
+            results["fail_to_pass_results"] = ftp_results
+            results["pass_to_pass_results"] = ptp_results
+            results["success"] = ftp_success and ptp_success
 
         if results["success"]:
             print("✅ All tests passed as expected!")
@@ -733,6 +894,7 @@ def run_validation(
         fail_to_pass,
         pass_to_pass,
         image=validation_image,
+        task_metadata=task_metadata,
     )
 
     functional_score = 0.0

@@ -1,0 +1,44 @@
+{
+  "dataset_name": "princeton-nlp/SWE-bench_Verified",
+  "download_date": "2026-03-31T13:54:53.256086+00:00",
+  "total_tasks": 500,
+  "repository_count": 12,
+  "repositories": {
+    "django": {
+      "count": 231
+    },
+    "sympy": {
+      "count": 75
+    },
+    "sphinx": {
+      "count": 44
+    },
+    "matplotlib": {
+      "count": 34
+    },
+    "scikit-learn": {
+      "count": 32
+    },
+    "astropy": {
+      "count": 22
+    },
+    "xarray": {
+      "count": 22
+    },
+    "pytest": {
+      "count": 19
+    },
+    "pylint": {
+      "count": 10
+    },
+    "requests": {
+      "count": 8
+    },
+    "seaborn": {
+      "count": 2
+    },
+    "flask": {
+      "count": 1
+    }
+  }
+}
