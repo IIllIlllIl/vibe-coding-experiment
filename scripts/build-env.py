@@ -63,6 +63,10 @@ def detect_python_version(task: dict) -> str:
             return "3.9"
         return "3.11"
 
+    # pytest <7.0 assertion rewriter incompatible with Python 3.11+ AST
+    if "pytest" in repo.lower() and not version.startswith("7.") and not version.startswith("8."):
+        return "3.9"
+
     if version.startswith("2."):
         return "3.10"
     return "3.11"
@@ -86,8 +90,7 @@ def build_dockerfile(python_version: str, test_framework: str = "pytest") -> str
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/opt/repo
+    PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     {' '.join(APT_PACKAGES)} \

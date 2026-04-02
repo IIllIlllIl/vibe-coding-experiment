@@ -47,6 +47,17 @@ Each run is classified by combining exit code, diff output, and validation resul
 | `no_changes` | exit=0 but no code changes (environment/permission issue) |
 | `failed` | no useful output |
 
+### Validation Pipeline
+
+Each run's output is validated in a Docker container using a two-step patch application process:
+
+1. **Capture Claude's diff**: After Claude Code finishes, all changes (including new untracked files) are captured via `git add -A && git diff --cached` to produce `final.diff`.
+2. **Apply test_patch**: SWE-bench's `test_patch` is applied first to establish the test cases.
+3. **Apply Claude's diff (filtered)**: `final.diff` is applied with any file paths that overlap with `test_patch` excluded. This prevents conflicts when Claude and SWE-bench modify the same test files, while preserving Claude's new files and source code changes.
+4. **Run tests**: The test suite runs inside the Docker image, computing functional and regression scores.
+
+All exclusions are recorded in `validation-results.json` under `diff_exclusions` for audit.
+
 ## Project Structure
 
 ```
@@ -81,12 +92,24 @@ vibe-coding-experiment/
 │   ├── exp-001-django-10924/   # Pilot experiment (Django)
 │   │   ├── plans/              # Manually created plans
 │   │   ├── results/            # Per-plan run outputs
+│   │   │   └── plan-XX/
+│   │   │       ├── plan.md          # Snapshot of plan used
+│   │   │       ├── analysis/        # Aggregated run statistics
+│   │   │       └── runs/
+│   │   │           └── run-NNN/
+│   │   │               ├── final.diff              # Claude's changes (incl. new files)
+│   │   │               ├── transcript.json         # Full Claude Code session
+│   │   │               ├── changed-files.txt       # List of modified files
+│   │   │               ├── commit-info.txt         # Base commit hash
+│   │   │               ├── validation-results.json # Test results + diff_exclusions
+│   │   │               ├── work/                   # Repo copy with Claude's changes
+│   │   │               └── validation/work/        # Separate repo copy for testing
 │   │   ├── repo/               # Target repo snapshot
 │   │   ├── task_full.json      # Task metadata
 │   │   └── ...
 │   ├── <instance_id>/          # One directory per SWE-bench task
 │   │   ├── plans/              # 5 plan files (manually created)
-│   │   ├── results/            # Execution results
+│   │   ├── results/            # Execution results (same structure)
 │   │   ├── repo/               # Cloned at base_commit
 │   │   └── task_full.json
 │   └── batch-summary.json      # Batch execution summary

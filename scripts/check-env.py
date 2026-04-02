@@ -89,6 +89,7 @@ def main():
             task_metadata.get("fail_to_pass", []),
             task_metadata.get("pass_to_pass", []),
             image=args.image,
+            task_metadata=task_metadata,
         )
         output["checks"]["test_patch_only"] = {
             "patches_applied": {"test_patch": test_patch_applied},
@@ -106,6 +107,7 @@ def main():
             task_metadata.get("fail_to_pass", []),
             task_metadata.get("pass_to_pass", []),
             image=args.image,
+            task_metadata=task_metadata,
         )
         output["checks"]["test_patch_plus_gold_patch"] = {
             "patches_applied": {
@@ -122,13 +124,154 @@ def main():
 
     output["overall"] = all(check.get("expectations", {}).get("overall", False) for check in output["checks"].values())
 
+    output["env_status"] = "pass" if output["overall"] else "fail"
+
     out_file = exp_path / "env-check.json"
     out_file.write_text(json.dumps(output, indent=2))
     print(f"Saved environment check to {out_file}")
+    print(f"Environment status: {output['env_status']}")
     print(json.dumps(output, indent=2))
 
     if not output["overall"]:
+        _generate_fix_prompt(exp_path, output, task_metadata, args.image)
         sys.exit(1)
+
+
+def _generate_fix_prompt(exp_path: Path, output: dict, task_metadata: dict, image: str) -> None:
+    """Generate a diagnostic log and fix prompt for Claude Code."""
+    task_file = exp_path / "task_full.json"
+    task = json.loads(task_file.read_text())
+    instance_id = task.get("instance_id", exp_path.name)
+
+    # Build diagnostic report
+    lines = [
+        f"# Environment Fix Needed: {instance_id}",
+        "",
+        f"## Task Info",
+        f"- repo: {task.get('repo', '')}",
+        f"- version: {task.get('version', '')}",
+        f"- base_commit: {task.get('base_commit', '')[:12]}...",
+        f"- Docker image: {image}",
+        f"- env_status: {output['env_status']}",
+        "",
+    ]
+
+    # Per-check details
+    for check_name, check_data in output.get("checks", {}).items():
+        exps = check_data.get("expectations", {})
+        lines.append(f"## Check: {check_name}")
+        lines.append(f"- expectations: {exps}")
+        patches = check_data.get("patches_applied", {})
+        lines.append(f"- patches_applied: {patches}")
+        lines.append("")
+
+        # Test results summary
+        tr = check_data.get("test_results", {})
+        lines.append(f"- framework: {tr.get('framework', '?')}")
+        lines.append(f"- exit_code: {tr.get('exit_code', '?')}")
+        lines.append(f"- total/passed/failed: {tr['total_tests']}/{tr['passed_tests']}/{tr['failed_tests']}")
+
+        # Fail-to-pass details
+        ftp = tr.get("fail_to_pass_results", {})
+        if ftp:
+            lines.append("- fail_to_pass:")
+            for k, v in ftp.items():
+                lines.append(f"    {v}: {k}")
+
+        # Pass-to-pass details (condensed)
+        ptp = tr.get("pass_to_pass_results", {})
+        if ptp:
+            passed = sum(1 for v in ptp.values() if v == "PASSED")
+            failed = sum(1 for v in ptp.values() if v == "FAILED")
+            notfound = sum(1 for v in ptp.values() if v == "NOT_FOUND")
+            lines.append(f"- pass_to_pass: passed={passed} failed={failed} not_found={notfound} (total={len(ptp)})")
+
+        # Docker test output (last 80 lines)
+        test_output = tr.get("output", "")
+        if test_output:
+            output_lines = test_output.strip().split("\n")
+            if len(output_lines) > 80:
+                lines.append(f"- test output (last 80 of {len(output_lines)} lines):")
+                output_lines = output_lines[-80:]
+            else:
+                lines.append("- test output:")
+            for ol in output_lines:
+                lines.append(f"    {ol}")
+
+        lines.append("")
+
+    # Actionable fix prompt
+    dockerfile_path = exp_path / "env-build" / "Dockerfile"
+    lines.extend([
+        "## How to Fix",
+        "",
+        "1. Read the diagnostic output above to understand what's failing",
+        f"2. Check the Dockerfile: {dockerfile_path}",
+        f"3. Check the repo source: {exp_path / 'repo'}",
+        "4. Common fixes:",
+        "   - Missing dependencies: add pip install to Dockerfile",
+        "   - Wrong Python version: update FROM line in Dockerfile",
+        "   - Test framework issues: ensure pytest/django test runner is properly configured",
+        "   - Import errors: install missing packages",
+        "5. After fixing, rebuild the image:",
+        f"   python scripts/build-env.py {exp_path} --rebuild",
+        f"6. Re-run env check:",
+        f"   python scripts/check-env.py {exp_path} --image {image}",
+        "",
+        "## Claude Code Fix Prompt",
+        "",
+        "Paste the following to Claude Code (run from repo directory):",
+        "---",
+    ])
+
+    # Generate the actual prompt Claude Code should receive
+    repo_dir = exp_path / "repo"
+    fail_summary = []
+    for check_name, check_data in output.get("checks", {}).items():
+        tr = check_data.get("test_results", {})
+        if tr.get("exit_code") != 0:
+            fail_summary.append(f"  {check_name}: exit_code={tr.get('exit_code')}, {tr.get('passed_tests',0)} passed, {tr.get('failed_tests',0)} failed")
+
+    fix_prompt = "\n".join([
+        f"/plan Fix the Docker test environment for {instance_id}.",
+        f"",
+        f"Repo: {task.get('repo', '')} (version {task.get('version', '')})",
+        f"Docker image: {image}",
+        f"",
+        f"The environment check failed:",
+        *fail_summary,
+        f"",
+        f"Key issues to investigate:",
+        f"1. Check the test output in {exp_path / 'env-check.json'} for errors",
+        f"2. Check if the Dockerfile at {dockerfile_path} has correct dependencies",
+        f"3. The test framework is: {output.get('checks', {}).get('test_patch_only', {}).get('test_results', {}).get('framework', 'unknown')}",
+        f"",
+        f"After fixing, rebuild and verify:",
+        f"  python scripts/build-env.py {exp_path}",
+        f"  python scripts/check-env.py {exp_path} --image {image}",
+        "",
+        f"Save this plan to {exp_path}/plans/env-fix-plan.md",
+    ])
+    lines.append(fix_prompt)
+    lines.append("---")
+
+    # Write diagnostic log
+    diag_file = exp_path / "env-diagnostic.md"
+    diag_file.write_text("\n".join(lines))
+
+    # Write the fix prompt separately for easy copy-paste
+    prompt_file = exp_path / "env-fix-prompt.md"
+    prompt_file.write_text(fix_prompt)
+
+    print(f"\n{'='*60}")
+    print(f"ENV CHECK FAILED: {output['env_status']}")
+    print(f"{'='*60}")
+    print(f"Diagnostic log: {diag_file}")
+    print(f"Fix prompt:     {prompt_file}")
+    print(f"")
+    print(f"To fix: open the fix prompt and paste to Claude Code,")
+    print(f"or read the diagnostic log for manual troubleshooting.")
+    print(f"{'='*60}")
 
 
 if __name__ == "__main__":

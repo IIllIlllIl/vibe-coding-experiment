@@ -1,0 +1,50 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 123576,
+  "duration_api_ms": 117330,
+  "num_turns": 18,
+  "result": "Done. Here's a summary of the changes:\n\n**Fix in `src/_pytest/skipping.py:265-266`** \u2014 Added re-evaluation of xfail marks in `pytest_runtest_makereport` when the cached value is `None`. This catches markers dynamically added during the test function body:\n\n```python\nxfailed = item._store.get(xfailed_key, None)\nif xfailed is None:\n    xfailed = evaluate_xfail_marks(item)\n```\n\n**Test in `testing/test_skipping.py:385-398`** \u2014 Added `test_dynamic_xfail_set_during_test` that reproduces the exact issue scenario: adding an xfail marker via `request.node.add_marker()` inside the test body, then asserting that the failure is reported as XFAIL.\n\nAll 80 tests in `test_skipping.py` pass with no regressions.",
+  "stop_reason": "end_turn",
+  "session_id": "bab46037-b982-47ee-8a62-cb648d501987",
+  "total_cost_usd": 0.235029,
+  "usage": {
+    "input_tokens": 16278,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 486400,
+    "output_tokens": 2685,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-sonnet-4-6": {
+      "inputTokens": 16278,
+      "outputTokens": 2685,
+      "cacheReadInputTokens": 486400,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.235029,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    }
+  },
+  "permission_denials": [],
+  "fast_mode_state": "off",
+  "uuid": "26d07039-f3be-40fd-8a2f-8065dc54ce6a",
+  "raw_stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"duration_ms\":123576,\"duration_api_ms\":117330,\"num_turns\":18,\"result\":\"Done. Here's a summary of the changes:\\n\\n**Fix in `src/_pytest/skipping.py:265-266`** \u2014 Added re-evaluation of xfail marks in `pytest_runtest_makereport` when the cached value is `None`. This catches markers dynamically added during the test function body:\\n\\n```python\\nxfailed = item._store.get(xfailed_key, None)\\nif xfailed is None:\\n    xfailed = evaluate_xfail_marks(item)\\n```\\n\\n**Test in `testing/test_skipping.py:385-398`** \u2014 Added `test_dynamic_xfail_set_during_test` that reproduces the exact issue scenario: adding an xfail marker via `request.node.add_marker()` inside the test body, then asserting that the failure is reported as XFAIL.\\n\\nAll 80 tests in `test_skipping.py` pass with no regressions.\",\"stop_reason\":\"end_turn\",\"session_id\":\"bab46037-b982-47ee-8a62-cb648d501987\",\"total_cost_usd\":0.235029,\"usage\":{\"input_tokens\":16278,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":486400,\"output_tokens\":2685,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-4-6\":{\"inputTokens\":16278,\"outputTokens\":2685,\"cacheReadInputTokens\":486400,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.235029,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"fast_mode_state\":\"off\",\"uuid\":\"26d07039-f3be-40fd-8a2f-8065dc54ce6a\"}\n",
+  "stderr": "",
+  "exit_code": 0,
+  "command": "claude -p --permission-mode acceptEdits --output-format json",
+  "cwd": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-02/runs/run-005/work"
+}

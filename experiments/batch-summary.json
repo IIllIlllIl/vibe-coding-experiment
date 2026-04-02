@@ -1,0 +1,38 @@
+{
+  "batch_date": "2026-04-01T18:19:16.351706+00:00",
+  "total_tasks": 2,
+  "runs_per_plan": 5,
+  "status_counts": {
+    "completed": 2
+  },
+  "tasks": [
+    {
+      "instance_id": "django__django-11951",
+      "exp_dir": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951",
+      "plans": [
+        "plan-01",
+        "plan-02",
+        "plan-03",
+        "plan-04",
+        "plan-05"
+      ],
+      "runs_per_plan": 5,
+      "status": "completed",
+      "skip_reason": ""
+    },
+    {
+      "instance_id": "pytest-dev__pytest-7490",
+      "exp_dir": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490",
+      "plans": [
+        "plan-01",
+        "plan-02",
+        "plan-03",
+        "plan-04",
+        "plan-05"
+      ],
+      "runs_per_plan": 5,
+      "status": "completed",
+      "skip_reason": ""
+    }
+  ]
+}

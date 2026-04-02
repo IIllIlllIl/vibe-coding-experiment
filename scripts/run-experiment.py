@@ -76,13 +76,20 @@ def build_docker_test_command(
             f"python tests/runtests.py -v 2 {module_args}"
         )
 
-    # pytest: run individual test IDs directly
-    test_ids = shlex.split(" ".join(all_tests))
-    if not test_ids:
+    # pytest: extract unique test file paths and run whole files, then match results from output
+    if not all_tests:
         return ""
 
-    test_args = " ".join(shlex.quote(t) for t in test_ids)
-    return f"python -m pytest {test_args} -v --tb=short 2>&1"
+    test_files = set()
+    for test in all_tests:
+        parts = test.split("::")
+        if parts:
+            test_files.add(parts[0])
+    file_args = " ".join(shlex.quote(f) for f in sorted(test_files))
+    return (
+        "python -m pip install --disable-pip-version-check -e . 2>/dev/null && "
+        f"python -m pytest {file_args} -v --tb=short 2>&1"
+    )
 
 
 def parse_pytest_output(output: str, fail_to_pass: List[str], pass_to_pass: List[str]) -> Dict[str, Any]:
@@ -90,9 +97,10 @@ def parse_pytest_output(output: str, fail_to_pass: List[str], pass_to_pass: List
     passed_tests = set()
     failed_tests = set()
 
-    # pytest -v output: "test/path/test_file.py::TestClass::test_method PASSED"
+    # pytest -v output: "test/path/test_file.py::TestClass::test_method[param] PASSED [pct%]"
+    # Some parametrized IDs contain spaces (e.g. "*1 xfailed*]"), so use lazy .+? up to status word
     pytest_pattern = re.compile(
-        r"^(\S+?)(?:\[.+?\])?\s+(PASSED|FAILED|ERROR|XFAIL|XPASS)\b",
+        r'^(.+?)\s+(PASSED|FAILED|ERROR|XFAIL|XPASS)\s',
         re.MULTILINE,
     )
     for match in pytest_pattern.finditer(output):
@@ -313,6 +321,11 @@ def parse_args():
         "--analysis-dir",
         help="Directory to store summary outputs (default: experiment_dir/analysis)"
     )
+    parser.add_argument(
+        "--keep-work",
+        action="store_true",
+        help="Keep temporary work/ and validation/ directories after each run (default: delete them)"
+    )
     return parser.parse_args()
 
 
@@ -394,32 +407,21 @@ def prepare_working_copy(exp_path: Path, run_path: Path) -> Path:
 
 
 def create_execution_prompt(plan_path: Path) -> str:
-    """Load plan and wrap with execution rules."""
+    """Load plan and wrap with minimal execution directive."""
     if not plan_path.exists():
         raise FileNotFoundError(f"Plan file not found: {plan_path}")
 
     plan_content = plan_path.read_text()
 
-    prompt_template = """You are executing a fixed implementation plan. Follow these rules strictly.
+    prompt_template = """Below is an approved final execution plan.
 
-## Fixed Plan
+Do not re-plan, do not rewrite the plan, do not propose alternatives, do not restate the plan.
+Proceed to implement this plan directly.
+
+Approved plan:
+--- plan start ---
 {plan_content}
-
-## Execution Rules
-1. Treat the plan above as fixed and complete.
-2. Do not revise, extend, or reinterpret the plan.
-3. You may read files, write code, and run tests as needed.
-4. Do not introduce changes outside the plan's scope.
-5. If you encounter a blocker, explain it clearly and stop.
-6. After completing the plan, run the verification tests.
-7. Do not ask for clarification - use the plan as your sole guide.
-
-## Success Criteria
-- All planned code changes are implemented
-- Verification tests pass
-- No unrelated files are modified
-
-Begin execution."""
+--- plan end ---"""
 
     return prompt_template.format(plan_content=plan_content)
 
@@ -567,19 +569,33 @@ def classify_run(exit_code: int, diff_size: int, validation: Optional[Dict[str, 
 
 
 def collect_results(run_path: Path, work_dir: Path) -> Dict[str, Any]:
-    """Collect diff and changed files."""
+    """Collect diff and changed files, including untracked new files."""
     results: Dict[str, Any] = {}
 
     diff_file = run_path / "final.diff"
     try:
+        # Stage all changes (including untracked files) so they appear in the diff
+        subprocess.run(
+            ["git", "add", "-A"],
+            cwd=work_dir,
+            capture_output=True,
+            check=False
+        )
         with open(diff_file, "w") as f:
             subprocess.run(
-                ["git", "diff"],
+                ["git", "diff", "--cached"],
                 cwd=work_dir,
                 stdout=f,
                 stderr=subprocess.DEVNULL,
                 check=False
             )
+        # Unstage to restore working tree state
+        subprocess.run(
+            ["git", "reset", "HEAD"],
+            cwd=work_dir,
+            capture_output=True,
+            check=False
+        )
         diff_size = diff_file.stat().st_size if diff_file.exists() else 0
         results["diff_file"] = str(diff_file)
         results["diff_size"] = diff_size
@@ -589,7 +605,7 @@ def collect_results(run_path: Path, work_dir: Path) -> Dict[str, Any]:
     changed_files_file = run_path / "changed-files.txt"
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only"],
+            ["git", "diff", "--cached", "--name-only"],
             cwd=work_dir,
             capture_output=True,
             text=True,
@@ -626,8 +642,67 @@ def load_task_metadata(exp_path: Path) -> Dict[str, Any]:
         "test_patch": data.get("test_patch", ""),
         "fail_to_pass": fail_to_pass,
         "pass_to_pass": pass_to_pass,
-        "gold_patch": data.get("patch", "")
+        "gold_patch": data.get("patch", ""),
+        "repo": data.get("repo", ""),
+        "instance_id": data.get("instance_id", ""),
+        "version": data.get("version", ""),
     }
+
+
+def _normalize_path(p: str) -> str:
+    """Normalize a diff path: strip a/ b/ prefix and remove leading ./ """
+    if p.startswith("a/") or p.startswith("b/"):
+        p = p[2:]
+    if p.startswith("./"):
+        p = p[2:]
+    return p
+
+
+def parse_diff_file_paths(patch_content: str) -> set:
+    """Extract file paths from a unified diff.
+
+    Handles paths with spaces by splitting from the right on ' b/'.
+    For renames, both old and new paths are included.
+    All paths are normalized (strip a/ b/ prefix, remove leading ./).
+    """
+    paths = set()
+    rename_re = re.compile(r'^rename (?:from|to) (.+)$')
+
+    for line in patch_content.splitlines():
+        if line.startswith("diff --git "):
+            # "diff --git a/path/to/file b/path/to/file"
+            # Split from right on " b/" to handle spaces in path
+            rest = line[len("diff --git "):]
+            b_idx = rest.rfind(" b/")
+            if b_idx >= 0:
+                path_a = rest[:b_idx]
+                path_b = rest[b_idx + 1:]  # "b/path/to/file"
+                paths.add(_normalize_path(path_a))
+                paths.add(_normalize_path(path_b))
+            continue
+        m = rename_re.match(line)
+        if m:
+            paths.add(_normalize_path(m.group(1)))
+    return paths
+
+
+def filter_diff_excluding_paths(patch_content: str, exclude_paths: set) -> str:
+    """Filter a unified diff, removing hunks for files in exclude_paths.
+
+    Uses the same rfind strategy as parse_diff_file_paths to handle
+    paths with spaces correctly.
+    """
+    filtered_lines: list[str] = []
+    skip = False
+    for line in patch_content.splitlines():
+        if line.startswith("diff --git "):
+            rest = line[len("diff --git "):]
+            b_idx = rest.rfind(" b/")
+            path = _normalize_path(rest[b_idx + 1:]) if b_idx >= 0 else ""
+            skip = path in exclude_paths
+        if not skip:
+            filtered_lines.append(line)
+    return "\n".join(filtered_lines)
 
 
 def apply_git_patch(work_dir: Path, patch_content: str, patch_name: str = "test_patch") -> bool:
@@ -718,6 +793,8 @@ def run_tests_in_docker(
         results["output"] = "Could not build test command"
         return results
 
+    # For pytest: test files are now passed directly in the command (no _test_ids.txt needed)
+
     cmd = [
         "docker", "run", "--rm",
         "-v", f"{work_dir.resolve()}:/workspace",
@@ -747,22 +824,36 @@ def run_tests_in_docker(
         results["framework"] = framework
 
         if framework == "django":
-            status_pattern = re.compile(
-                r'^(\w+)\s+\(([\w.]+)\.(\w+)\)\s+\.\.\.\s+(ok|FAIL|FAILED|ERROR)$',
+            # Django -v 2 output has two formats:
+            #   single-line: test_name (module.class) ... ok
+            #   multi-line:  test_name (module.class)\ndocstring ... ok
+            # We find test names first, then pair each with its result.
+            name_re = re.compile(
+                r'^(\w+)\s+\(([\w.]+)\.(\w+)\)',
                 re.MULTILINE,
             )
+            result_re = re.compile(r'\.\.\.\s+(ok|FAIL|FAILED|ERROR)\s*$', re.MULTILINE)
 
             passed_tests = set()
             failed_tests = set()
-            for match in status_pattern.finditer(output):
+            name_matches = list(name_re.finditer(output))
+            for i, match in enumerate(name_matches):
                 displayed_name = match.group(1)
                 class_path = match.group(2)
-                status = match.group(4)
-                full_test_name = f"{displayed_name} ({class_path})"
-                if status == "ok":
-                    passed_tests.add(full_test_name)
-                else:
-                    failed_tests.add(full_test_name)
+                class_name = match.group(3)
+                full_test_name = f"{displayed_name} ({class_path}.{class_name})"
+
+                # Search for result between this match and the next
+                search_start = match.end()
+                search_end = name_matches[i + 1].start() if i + 1 < len(name_matches) else len(output)
+                section = output[search_start:search_end]
+                result_match = result_re.search(section)
+                if result_match:
+                    status = result_match.group(1)
+                    if status == "ok":
+                        passed_tests.add(full_test_name)
+                    else:
+                        failed_tests.add(full_test_name)
 
             results["total_tests"] = len(passed_tests) + len(failed_tests)
             results["passed_tests"] = len(passed_tests)
@@ -862,6 +953,9 @@ def run_validation(
 ) -> Dict[str, Any]:
     """
     Run complete validation on Claude's implementation.
+
+    Applies test_patch first, then final.diff with test_patch file paths
+    excluded to prevent conflicts. All exclusions are recorded for audit.
     """
     validation_dir = run_path / "validation"
 
@@ -882,8 +976,21 @@ def run_validation(
         print(f"  Reset to base commit: {base_commit[:8]}...")
 
     test_patch = task_metadata.get("test_patch", "")
+
+    # Parse file paths touched by test_patch
+    test_patch_paths = parse_diff_file_paths(test_patch)
+
+    # Step 1: Apply test_patch (SWE-bench test cases)
     test_patch_applied = apply_git_patch(work_dir, test_patch, "test_patch")
-    claude_patch_applied = apply_git_patch(work_dir, diff_content, "final.diff")
+
+    # Step 2: Filter final.diff to exclude files touched by test_patch
+    filtered_diff = filter_diff_excluding_paths(diff_content, test_patch_paths)
+    excluded_paths = sorted(test_patch_paths & parse_diff_file_paths(diff_content))
+
+    if excluded_paths:
+        print(f"  📝 Excluded from final.diff (overlaps with test_patch): {excluded_paths}")
+
+    claude_patch_applied = apply_git_patch(work_dir, filtered_diff, "final.diff")
     test_file_check = check_test_file_created(work_dir, test_patch)
 
     fail_to_pass = task_metadata.get("fail_to_pass", [])
@@ -915,6 +1022,10 @@ def run_validation(
         "patches_applied": {
             "test_patch": test_patch_applied,
             "claude_patch": claude_patch_applied
+        },
+        "diff_exclusions": {
+            "excluded_paths": excluded_paths,
+            "reason": "overlaps with test_patch"
         },
         "test_file_check": test_file_check,
         "test_results": test_results,
@@ -1349,6 +1460,19 @@ def main():
             )
 
         executed_runs.append(result)
+
+        if not args.dry_run and not args.keep_work:
+            for dir_name in ["work", "validation"]:
+                dir_path = run_path / dir_name
+                if dir_path.exists():
+                    try:
+                        shutil.rmtree(dir_path)
+                        print(f"  🧹 Cleaned up {dir_name}/")
+                    except Exception as e:
+                        print(f"  ⚠️  Failed to delete {dir_name}/: {e}")
+        elif not args.dry_run and args.keep_work:
+            print("  📂 Kept work/ and validation/ (--keep-work flag set)")
+
         print(f"<<< Run {run_num:03d} completed")
 
         if not args.dry_run:

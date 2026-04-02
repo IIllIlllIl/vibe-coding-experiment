@@ -1,0 +1,48 @@
+Experiment: pytest-dev__pytest-7490
+Runs directory: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-04/runs
+Generated: 2026-04-01T18:07:32.250860+00:00
+Total runs: 5
+Successful: 0
+Failed: 5
+
+Status Breakdown:
+  partial: 5
+
+Files Changed Statistics:
+  Min: 2
+  Max: 2
+  Avg: 2.00
+  Range: 0
+
+Diff Size Statistics (bytes):
+  Min: 1853
+  Max: 2037
+  Avg: 1927.80
+  Range: 184
+
+Duration Statistics (seconds):
+  Min: 5.17
+  Max: 5.28
+  Avg: 5.21
+  Range: 0.11
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=partial, duration=5s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=14071, output_tokens=2396, cache_read_input_tokens=593152, tokens=16467
+Run 002: status=partial, duration=5s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=12603, output_tokens=2224, cache_read_input_tokens=441088, tokens=14827
+Run 003: status=partial, duration=5s, FAIL_TO_PASS=0/2 (0%), PASS_TO_PASS=78/78 (100%), input_tokens=12413, output_tokens=1890, cache_read_input_tokens=362816, tokens=14303
+Run 004: status=partial, duration=5s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=29061, output_tokens=1901, cache_read_input_tokens=422272, tokens=30962
+Run 005: status=partial, duration=5s, FAIL_TO_PASS=0/2 (0%), PASS_TO_PASS=78/78 (100%), input_tokens=29318, output_tokens=2603, cache_read_input_tokens=522368, tokens=31921
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 5
+Average functional score: 60.00%
+Average regression score: 99.23%
+Average overall score: 79.62%
+Perfect runs (100% overall): 0
+Runs with test file created: 5

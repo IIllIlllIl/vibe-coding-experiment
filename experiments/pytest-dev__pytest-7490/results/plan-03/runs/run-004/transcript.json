@@ -1,0 +1,50 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 112655,
+  "duration_api_ms": 105646,
+  "num_turns": 14,
+  "result": "All 81 tests pass. Here's a summary of the changes:\n\n**`src/_pytest/skipping.py`** (line 265-267): Added re-evaluation of xfail marks in `pytest_runtest_makereport` when the cached value is `None`, catching markers dynamically added during test execution.\n\n**`testing/test_skipping.py`** (lines 428-454): Added two regression tests:\n- `test_dynamic_xfail_during_test` \u2014 verifies dynamically added xfail on a failing test produces XFAIL\n- `test_dynamic_xfail_during_test_strict` \u2014 verifies dynamically added strict xfail on a passing test produces XPASS(strict)",
+  "stop_reason": "end_turn",
+  "session_id": "d45f1cf7-f3e1-48ec-850f-a7af10691771",
+  "total_cost_usd": 0.15935339999999998,
+  "usage": {
+    "input_tokens": 10196,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 306368,
+    "output_tokens": 2457,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-sonnet-4-6": {
+      "inputTokens": 10196,
+      "outputTokens": 2457,
+      "cacheReadInputTokens": 306368,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.15935339999999998,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    }
+  },
+  "permission_denials": [],
+  "fast_mode_state": "off",
+  "uuid": "1c6e11ea-3d88-4dcc-91b4-c4c92e3e3c2f",
+  "raw_stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"duration_ms\":112655,\"duration_api_ms\":105646,\"num_turns\":14,\"result\":\"All 81 tests pass. Here's a summary of the changes:\\n\\n**`src/_pytest/skipping.py`** (line 265-267): Added re-evaluation of xfail marks in `pytest_runtest_makereport` when the cached value is `None`, catching markers dynamically added during test execution.\\n\\n**`testing/test_skipping.py`** (lines 428-454): Added two regression tests:\\n- `test_dynamic_xfail_during_test` \u2014 verifies dynamically added xfail on a failing test produces XFAIL\\n- `test_dynamic_xfail_during_test_strict` \u2014 verifies dynamically added strict xfail on a passing test produces XPASS(strict)\",\"stop_reason\":\"end_turn\",\"session_id\":\"d45f1cf7-f3e1-48ec-850f-a7af10691771\",\"total_cost_usd\":0.15935339999999998,\"usage\":{\"input_tokens\":10196,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":306368,\"output_tokens\":2457,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-4-6\":{\"inputTokens\":10196,\"outputTokens\":2457,\"cacheReadInputTokens\":306368,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.15935339999999998,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[],\"fast_mode_state\":\"off\",\"uuid\":\"1c6e11ea-3d88-4dcc-91b4-c4c92e3e3c2f\"}\n",
+  "stderr": "",
+  "exit_code": 0,
+  "command": "claude -p --permission-mode acceptEdits --output-format json",
+  "cwd": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-03/runs/run-004/work"
+}
