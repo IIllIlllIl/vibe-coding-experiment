@@ -13,7 +13,7 @@ index 794e0faae7..92349cd0c5 100644
          bulk_return = connections[self.db].features.can_return_rows_from_bulk_insert
          for item in [objs[i:i + batch_size] for i in range(0, len(objs), batch_size)]:
 diff --git a/tests/bulk_create/tests.py b/tests/bulk_create/tests.py
-index 47aa7afcdc..43e397c433 100644
+index 47aa7afcdc..c35af24c6d 100644
 --- a/tests/bulk_create/tests.py
 +++ b/tests/bulk_create/tests.py
 @@ -1,4 +1,5 @@
@@ -22,19 +22,16 @@ index 47aa7afcdc..43e397c433 100644
  
  from django.db import IntegrityError, NotSupportedError, connection
  from django.db.models import FileField, Value
-@@ -305,3 +306,15 @@ class BulkCreateTests(TestCase):
+@@ -305,3 +306,12 @@ class BulkCreateTests(TestCase):
          # Without ignore_conflicts=True, there's a problem.
          with self.assertRaises(IntegrityError):
              TwoFields.objects.bulk_create(conflicting_objects)
 +
-+    @skipUnlessDBFeature('has_bulk_insert')
-+    def test_batch_size_exceeds_max_batch_size(self):
-+        """batch_size is clamped to the database's bulk_batch_size limit."""
-+        with mock.patch(
-+            'django.db.backends.base.operations.BaseDatabaseOperations.bulk_batch_size',
-+            return_value=2,
++    def test_bulk_batch_size_respects_max(self):
++        """batch_size is reduced if it exceeds bulk_batch_size()."""
++        objs = [TwoFields(f1=i, f2=i) for i in range(10)]
++        with mock.patch.object(
++            connection.ops, 'bulk_batch_size', return_value=2
 +        ):
-+            # 4 objects, batch_size=1000, but bulk_batch_size returns 2
-+            # => should execute 2 queries (4 objects / 2 per batch)
-+            with self.assertNumQueries(2):
-+                Country.objects.bulk_create(self.data, batch_size=1000)
++            with self.assertNumQueries(5):
++                TwoFields.objects.bulk_create(objs, batch_size=100)

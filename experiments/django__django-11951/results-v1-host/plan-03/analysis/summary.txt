@@ -1,0 +1,48 @@
+Experiment: django__django-11951
+Runs directory: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results-v1-host/plan-03/runs
+Generated: 2026-04-03T12:46:15.750054+00:00
+Total runs: 5
+Successful: 5
+Failed: 0
+
+Status Breakdown:
+  success: 5
+
+Files Changed Statistics:
+  Min: 2
+  Max: 2
+  Avg: 2.00
+  Range: 0
+
+Diff Size Statistics (bytes):
+  Min: 1827
+  Max: 2171
+  Avg: 2024.80
+  Range: 344
+
+Duration Statistics (seconds):
+  Min: 199.71
+  Max: 355.99
+  Avg: 268.90
+  Range: 156.28
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=success, duration=315.3s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=25851, output_tokens=2961, cache_read_input_tokens=824704, tokens=28812
+Run 002: status=success, duration=356.0s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=29731, output_tokens=2785, cache_read_input_tokens=795392, tokens=32516
+Run 003: status=success, duration=199.7s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=25611, output_tokens=2329, cache_read_input_tokens=681344, tokens=27940
+Run 004: status=success, duration=212.3s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=9274, output_tokens=2148, cache_read_input_tokens=631552, tokens=11422
+Run 005: status=success, duration=261.2s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=28671, output_tokens=2737, cache_read_input_tokens=782528, tokens=31408
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 5
+Average functional score: 100.00%
+Average regression score: 100.00%
+Average overall score: 100.00%
+Perfect runs (100% overall): 5
+Runs with test file created: 5

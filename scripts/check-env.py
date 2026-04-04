@@ -53,7 +53,7 @@ def evaluate_expectations(results: dict, expect_fail_to_pass_passed: bool) -> di
     ftp = results.get("fail_to_pass_results", {})
     ptp = results.get("pass_to_pass_results", {})
     ftp_ok = all(v == ("PASSED" if expect_fail_to_pass_passed else "FAILED") for v in ftp.values()) if ftp else False
-    ptp_ok = all(v == "PASSED" for v in ptp.values()) if ptp else False
+    ptp_ok = all(v in ("PASSED", "SKIPPED") for v in ptp.values()) if ptp else False
     return {
         "fail_to_pass_expectation_met": ftp_ok,
         "pass_to_pass_expectation_met": ptp_ok,

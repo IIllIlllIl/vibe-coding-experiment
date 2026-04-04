@@ -2,62 +2,62 @@
   "experiment": "django__django-11951",
   "runs_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results/plan-01/runs",
   "analysis_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results/plan-01/analysis",
-  "generated_at": "2026-04-01T14:46:07.808579+00:00",
+  "generated_at": "2026-04-03T12:46:15.189419+00:00",
   "total_runs": 5,
-  "successful_runs": 0,
-  "failed_runs": 5,
+  "successful_runs": 5,
+  "failed_runs": 0,
   "status_breakdown": {
-    "partial": 5
+    "success": 5
   },
   "run_statuses": [
     {
       "run_id": 1,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T14:21:47.409991+00:00",
-      "end_time": "2026-04-01T14:22:04.068871+00:00",
+      "start_time": "2026-04-02T16:09:41.264140+00:00",
+      "end_time": "2026-04-02T16:18:05.900140+00:00",
       "changed_files_count": 2,
-      "diff_size": 2316,
+      "diff_size": 2093,
       "error": ""
     },
     {
       "run_id": 2,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T14:29:23.316475+00:00",
-      "end_time": "2026-04-01T14:29:39.727301+00:00",
+      "start_time": "2026-04-02T16:18:28.719565+00:00",
+      "end_time": "2026-04-02T16:22:07.109565+00:00",
       "changed_files_count": 2,
-      "diff_size": 1893,
+      "diff_size": 2035,
       "error": ""
     },
     {
       "run_id": 3,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T14:35:50.666127+00:00",
-      "end_time": "2026-04-01T14:36:06.531856+00:00",
+      "start_time": "2026-04-02T16:22:30.939573+00:00",
+      "end_time": "2026-04-02T16:26:14.102573+00:00",
       "changed_files_count": 2,
-      "diff_size": 2046,
+      "diff_size": 2104,
       "error": ""
     },
     {
       "run_id": 4,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T14:39:31.590806+00:00",
-      "end_time": "2026-04-01T14:39:48.396606+00:00",
+      "start_time": "2026-04-02T16:26:38.722973+00:00",
+      "end_time": "2026-04-02T16:31:22.198973+00:00",
       "changed_files_count": 2,
-      "diff_size": 2087,
+      "diff_size": 2148,
       "error": ""
     },
     {
       "run_id": 5,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T14:45:48.788690+00:00",
-      "end_time": "2026-04-01T14:46:05.793199+00:00",
+      "start_time": "2026-04-02T16:31:46.581912+00:00",
+      "end_time": "2026-04-02T16:34:16.443912+00:00",
       "changed_files_count": 2,
-      "diff_size": 2061,
+      "diff_size": 1791,
       "error": ""
     }
   ],
@@ -69,65 +69,65 @@
       "range": 0
     },
     "diff_size_bytes": {
-      "min": 1893,
-      "max": 2316,
-      "avg": 2080.6,
-      "range": 423
+      "min": 1791,
+      "max": 2148,
+      "avg": 2034.2,
+      "range": 357
     }
   },
   "durations_seconds": {
-    "min": 15.865729,
-    "max": 17.004509,
-    "avg": 16.5491488,
-    "range": 1.1387799999999988
+    "min": 149.862,
+    "max": 504.636,
+    "avg": 275.9054,
+    "range": 354.774
   },
   "tokens": {
-    "average_input_tokens": 19932.8,
-    "average_output_tokens": 3004.8,
-    "average_cache_read_input_tokens": 882188.8,
-    "average_total_tokens": 22937.6
+    "average_input_tokens": 21634.8,
+    "average_output_tokens": 2548.8,
+    "average_cache_read_input_tokens": 678054.4,
+    "average_total_tokens": 24183.6
   },
   "validation": {
     "total_validated": 5,
-    "average_functional_score": 0.0,
-    "average_regression_score": 0.6857142857142857,
-    "average_overall_score": 0.34285714285714286,
-    "perfect_runs": 0,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 5,
     "test_file_created_count": 5,
     "per_run": [
       {
         "run_id": 1,
-        "functional": 0.0,
-        "regression": 0.0,
-        "overall": 0.0,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
         "test_file_created": true
       },
       {
         "run_id": 2,
-        "functional": 0.0,
-        "regression": 0.8571428571428571,
-        "overall": 0.42857142857142855,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
         "test_file_created": true
       },
       {
         "run_id": 3,
-        "functional": 0.0,
-        "regression": 0.8571428571428571,
-        "overall": 0.42857142857142855,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
         "test_file_created": true
       },
       {
         "run_id": 4,
-        "functional": 0.0,
-        "regression": 0.8571428571428571,
-        "overall": 0.42857142857142855,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
         "test_file_created": true
       },
       {
         "run_id": 5,
-        "functional": 0.0,
-        "regression": 0.8571428571428571,
-        "overall": 0.42857142857142855,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
         "test_file_created": true
       }
     ]

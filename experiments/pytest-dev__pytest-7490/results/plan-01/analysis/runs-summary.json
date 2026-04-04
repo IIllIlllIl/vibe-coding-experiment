@@ -2,98 +2,97 @@
   "experiment": "pytest-dev__pytest-7490",
   "runs_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-01/runs",
   "analysis_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-01/analysis",
-  "generated_at": "2026-04-01T17:24:17.610375+00:00",
+  "generated_at": "2026-04-03T12:46:16.321994+00:00",
   "total_runs": 5,
-  "successful_runs": 3,
-  "failed_runs": 2,
+  "successful_runs": 5,
+  "failed_runs": 0,
   "status_breakdown": {
-    "partial": 2,
-    "success": 3
+    "success": 5
   },
   "run_statuses": [
     {
       "run_id": 1,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T16:50:57.182274+00:00",
-      "end_time": "2026-04-01T16:51:02.966548+00:00",
+      "start_time": "2026-04-02T17:48:42.779266+00:00",
+      "end_time": "2026-04-02T17:49:07.355266+00:00",
       "changed_files_count": 2,
-      "diff_size": 1522,
+      "diff_size": 1454,
       "error": ""
     },
     {
       "run_id": 2,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T17:14:20.827818+00:00",
-      "end_time": "2026-04-01T17:14:26.624530+00:00",
+      "start_time": "2026-04-02T17:49:16.070665+00:00",
+      "end_time": "2026-04-02T17:51:44.144665+00:00",
       "changed_files_count": 2,
-      "diff_size": 1459,
+      "diff_size": 1395,
       "error": ""
     },
     {
       "run_id": 3,
-      "status": "partial",
+      "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T17:19:58.046319+00:00",
-      "end_time": "2026-04-01T17:20:03.375736+00:00",
+      "start_time": "2026-04-02T17:51:52.548835+00:00",
+      "end_time": "2026-04-02T17:53:35.258835+00:00",
       "changed_files_count": 2,
-      "diff_size": 1459,
+      "diff_size": 1396,
       "error": ""
     },
     {
       "run_id": 4,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T17:22:19.270573+00:00",
-      "end_time": "2026-04-01T17:22:24.934291+00:00",
+      "start_time": "2026-04-02T17:53:43.742796+00:00",
+      "end_time": "2026-04-02T17:57:07.214796+00:00",
       "changed_files_count": 2,
-      "diff_size": 1505,
+      "diff_size": 1454,
       "error": ""
     },
     {
       "run_id": 5,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T17:24:09.840464+00:00",
-      "end_time": "2026-04-01T17:24:15.590033+00:00",
-      "changed_files_count": 2,
-      "diff_size": 1454,
+      "start_time": "2026-04-02T17:57:15.536372+00:00",
+      "end_time": "2026-04-02T18:27:42.810372+00:00",
+      "changed_files_count": 4,
+      "diff_size": 2486,
       "error": ""
     }
   ],
   "statistics": {
     "files_changed": {
       "min": 2,
-      "max": 2,
-      "avg": 2.0,
-      "range": 0
+      "max": 4,
+      "avg": 2.4,
+      "range": 2
     },
     "diff_size_bytes": {
-      "min": 1454,
-      "max": 1522,
-      "avg": 1479.8,
-      "range": 68
+      "min": 1395,
+      "max": 2486,
+      "avg": 1637.0,
+      "range": 1091
     }
   },
   "durations_seconds": {
-    "min": 5.329417,
-    "max": 5.796712,
-    "avg": 5.664738,
-    "range": 0.467295
+    "min": 24.576,
+    "max": 1827.274,
+    "avg": 461.22119999999995,
+    "range": 1802.6979999999999
   },
   "tokens": {
-    "average_input_tokens": 32091.6,
-    "average_output_tokens": 5013.6,
-    "average_cache_read_input_tokens": 1915686.4,
-    "average_total_tokens": 37105.2
+    "average_input_tokens": 9777.0,
+    "average_output_tokens": 2288.6,
+    "average_cache_read_input_tokens": 684147.2,
+    "average_total_tokens": 12065.6
   },
   "validation": {
     "total_validated": 5,
-    "average_functional_score": 0.6,
+    "average_functional_score": 1.0,
     "average_regression_score": 1.0,
-    "average_overall_score": 0.8,
-    "perfect_runs": 3,
+    "average_overall_score": 1.0,
+    "perfect_runs": 5,
     "test_file_created_count": 5,
     "per_run": [
       {
@@ -105,16 +104,16 @@
       },
       {
         "run_id": 2,
-        "functional": 0.0,
+        "functional": 1.0,
         "regression": 1.0,
-        "overall": 0.5,
+        "overall": 1.0,
         "test_file_created": true
       },
       {
         "run_id": 3,
-        "functional": 0.0,
+        "functional": 1.0,
         "regression": 1.0,
-        "overall": 0.5,
+        "overall": 1.0,
         "test_file_created": true
       },
       {

@@ -1,62 +1,62 @@
 Experiment: pytest-dev__pytest-7490
-Generated: 2026-04-01T18:19:16.343910+00:00
+Generated: 2026-04-02T20:09:44.446039+00:00
 
 Per-plan summary:
 - plan-01
-  success_rate=60.00%
-  perfect_validation_rate=60.00%
-  diff_range=68
+  success_rate=0.00%
+  perfect_validation_rate=0.00%
+  diff_range=1091
   changed_files_range=0
-  duration_range=0.47s
-  avg_overall_validation=80.00%
-  variability_score=268
+  duration_range=0.44s
+  avg_overall_validation=50.00%
+  variability_score=1191
 
 - plan-02
-  success_rate=20.00%
-  perfect_validation_rate=20.00%
-  diff_range=1082
+  success_rate=0.00%
+  perfect_validation_rate=0.00%
+  diff_range=342
   changed_files_range=0
-  duration_range=0.87s
-  avg_overall_validation=89.62%
-  variability_score=1282
+  duration_range=0.34s
+  avg_overall_validation=50.00%
+  variability_score=442
 
 - plan-03
   success_rate=0.00%
   perfect_validation_rate=0.00%
-  diff_range=43
+  diff_range=0
   changed_files_range=0
-  duration_range=0.29s
+  duration_range=0.24s
   avg_overall_validation=50.00%
-  variability_score=143
+  variability_score=100
 
 - plan-04
   success_rate=0.00%
   perfect_validation_rate=0.00%
-  diff_range=184
+  diff_range=271
   changed_files_range=0
-  duration_range=0.11s
-  avg_overall_validation=79.62%
-  variability_score=284
+  duration_range=2.93s
+  avg_overall_validation=50.00%
+  variability_score=371
 
 - plan-05
   success_rate=0.00%
   perfect_validation_rate=0.00%
-  diff_range=177
+  diff_range=190
   changed_files_range=0
-  duration_range=1.13s
-  avg_overall_validation=59.87%
-  variability_score=277
+  duration_range=0.49s
+  avg_overall_validation=50.00%
+  variability_score=290
 
 Cross-plan comparison:
 - highest_success_rate: plan-01
-- lowest_success_rate: plan-03
-- highest_overall_validation: plan-02
-- lowest_overall_validation: plan-03
-- most_variable_diff_size: plan-02
+- lowest_success_rate: plan-01
+- highest_overall_validation: plan-01
+- lowest_overall_validation: plan-01
+- most_variable_diff_size: plan-01
 - least_variable_diff_size: plan-03
 - most_variable_changed_files: plan-01
 - least_variable_changed_files: plan-01
-- most_variable_duration: plan-05
-- least_variable_duration: plan-04
-- most_variable_overall: plan-02
+- most_variable_duration: plan-04
+- least_variable_duration: plan-03
+- most_variable_overall: plan-01
 - least_variable_overall: plan-03

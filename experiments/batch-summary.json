@@ -1,9 +1,9 @@
 {
-  "batch_date": "2026-04-01T18:19:16.351706+00:00",
-  "total_tasks": 2,
+  "batch_date": "2026-04-04T13:08:59.615085+00:00",
+  "total_tasks": 5,
   "runs_per_plan": 5,
   "status_counts": {
-    "completed": 2
+    "completed": 5
   },
   "tasks": [
     {
@@ -21,8 +21,50 @@
       "skip_reason": ""
     },
     {
+      "instance_id": "sympy__sympy-12481",
+      "exp_dir": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/sympy__sympy-12481",
+      "plans": [
+        "plan-01",
+        "plan-02",
+        "plan-03",
+        "plan-04",
+        "plan-05"
+      ],
+      "runs_per_plan": 5,
+      "status": "completed",
+      "skip_reason": ""
+    },
+    {
+      "instance_id": "scikit-learn__scikit-learn-14053",
+      "exp_dir": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/scikit-learn__scikit-learn-14053",
+      "plans": [
+        "plan-01",
+        "plan-02",
+        "plan-03",
+        "plan-04",
+        "plan-05"
+      ],
+      "runs_per_plan": 5,
+      "status": "completed",
+      "skip_reason": ""
+    },
+    {
       "instance_id": "pytest-dev__pytest-7490",
       "exp_dir": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490",
+      "plans": [
+        "plan-01",
+        "plan-02",
+        "plan-03",
+        "plan-04",
+        "plan-05"
+      ],
+      "runs_per_plan": 5,
+      "status": "completed",
+      "skip_reason": ""
+    },
+    {
+      "instance_id": "pylint-dev__pylint-4970",
+      "exp_dir": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pylint-dev__pylint-4970",
       "plans": [
         "plan-01",
         "plan-02",

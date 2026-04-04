@@ -219,6 +219,14 @@ What this does:
 - builds a reusable validation image;
 - writes the image tag to `experiments/exp-001-django-10924/env-image.txt`.
 
+To also build the Claude-enabled executor image (needed for Docker execution mode):
+
+```bash
+python scripts/build-env.py experiments/exp-001-django-10924 --with-claude
+```
+
+This creates a second image tagged `claude-executor:<suffix>` that layers Node.js + Claude CLI on top of the validation image. The tag is saved to `claude-executor-image.txt`.
+
 Important:
 - Docker must be running locally;
 - the build depends on the experiment `repo/` directory being present first.
@@ -248,13 +256,30 @@ Do not start the main experiment run until this validation passes.
 
 ## Step 9: Run the experiment
 
+### Execution modes
+
+Claude Code can run in two modes:
+
+- **Host mode** (default): Claude Code runs directly on the host. Requires `claude` in PATH.
+- **Docker mode** (`--execution-mode docker`): Claude Code runs inside a Docker container built from the executor image. This gives Claude access to project dependencies (test runners, etc.).
+
+When using Docker mode, the executor image is auto-built if missing. The `ANTHROPIC_API_KEY` is passed via a temporary `--env-file` to avoid exposure in process listings.
+
 ### Single-plan mode
 
-Single run:
+Single run (host mode):
 
 ```bash
 python scripts/run-experiment.py experiments/exp-001-django-10924 \
   --validation-image swe-env:django-django-10924
+```
+
+Single run (Docker mode):
+
+```bash
+python scripts/run-experiment.py experiments/exp-001-django-10924 \
+  --validation-image swe-env:django-django-10924 \
+  --execution-mode docker --claude-permission-mode bypassPermissions
 ```
 
 Multiple runs:
@@ -271,12 +296,26 @@ Dry run:
 python scripts/run-experiment.py experiments/exp-001-django-10924 --dry-run
 ```
 
+With resource limits (Docker mode only):
+
+```bash
+python scripts/run-experiment.py experiments/exp-001-django-10924 \
+  --execution-mode docker --docker-cpus 2 --docker-memory 4g
+```
+
 ### Multi-plan mode
 
 Run all plans:
 
 ```bash
 python scripts/run-multi-plan.py experiments/exp-001-django-10924
+```
+
+Run in Docker mode:
+
+```bash
+python scripts/run-multi-plan.py experiments/exp-001-django-10924 \
+  --execution-mode docker --claude-permission-mode bypassPermissions
 ```
 
 Run selected plans only:
@@ -366,7 +405,33 @@ Symptom:
 Fix:
 - install Claude Code CLI;
 - complete local authentication;
-- confirm `claude` is available in `PATH`.
+- confirm `claude` is available in `PATH`;
+- if using Docker execution mode (`--execution-mode docker`), the CLI is installed inside the executor image — host CLI is not required.
+
+### 4b. Docker executor image missing
+
+Symptom:
+- `run-experiment.py --execution-mode docker` fails with "Docker execution requires --executor-image".
+
+Fix:
+
+```bash
+python scripts/build-env.py experiments/exp-001-django-10924 --with-claude
+```
+
+Or let the script auto-build by ensuring `env-image.txt` exists (the executor image is derived from it).
+
+### 4c. ANTHROPIC_API_KEY not set for Docker mode
+
+Symptom:
+- Docker execution fails with "ANTHROPIC_API_KEY environment variable is not set".
+
+Fix:
+- export the key before running:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ### 5. `.env` not configured
 
@@ -412,13 +477,14 @@ Use this checklist on a fresh device:
 - [ ] install `requirements.txt`
 - [ ] copy `.env.example` to `.env`
 - [ ] set `ANTHROPIC_API_KEY`
-- [ ] install and authenticate Claude Code CLI
+- [ ] install and authenticate Claude Code CLI (required for host mode)
 - [ ] clone SWE-bench into `datasets/swe-bench/`
 - [ ] clone the target repo into `experiments/exp-001-django-10924/repo/`
 - [ ] checkout the required base commit
 - [ ] run `python scripts/verify-setup.py`
 - [ ] run `python scripts/build-env.py experiments/exp-001-django-10924`
 - [ ] run `python scripts/check-env.py experiments/exp-001-django-10924 --image swe-env:django-django-10924`
-- [ ] run a dry-run or real experiment command
+- [ ] *(optional)* run `python scripts/build-env.py experiments/exp-001-django-10924 --with-claude` for Docker execution mode
+- [ ] run a dry-run or real experiment command (host or Docker mode)
 
 If all boxes can be checked on a new machine, the project has been successfully reconstructed.

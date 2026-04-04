@@ -1,0 +1,40 @@
+diff --git a/src/_pytest/skipping.py b/src/_pytest/skipping.py
+index 335e10996..e2c5e8045 100644
+--- a/src/_pytest/skipping.py
++++ b/src/_pytest/skipping.py
+@@ -262,6 +262,8 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):
+     outcome = yield
+     rep = outcome.get_result()
+     xfailed = item._store.get(xfailed_key, None)
++    if xfailed is None:
++        item._store[xfailed_key] = xfailed = evaluate_xfail_marks(item)
+     # unittest special case, see setting of unexpectedsuccess_key
+     if unexpectedsuccess_key in item._store and rep.when == "call":
+         reason = item._store[unexpectedsuccess_key]
+diff --git a/testing/test_skipping.py b/testing/test_skipping.py
+index 8fceb37aa..4796eed64 100644
+--- a/testing/test_skipping.py
++++ b/testing/test_skipping.py
+@@ -1001,6 +1001,22 @@ def test_xfail_test_setup_exception(testdir):
+     result.stdout.no_fnmatch_line("*xpassed*")
+ 
+ 
++def test_dynamic_xfail_set_during_test(testdir):
++    """Dynamically adding xfail marker in test body should cause failure to be reported as XFAIL."""
++    testdir.makepyfile(
++        """
++        import pytest
++        def test_this(request):
++            request.node.add_marker(pytest.mark.xfail(reason="expected failure"))
++            assert 0
++        """
++    )
++    result = testdir.runpytest("-v")
++    result.stdout.fnmatch_lines(["*test_this*XFAIL*"])
++    result.stdout.no_fnmatch_line("*FAILED*")
++    assert result.ret == 0
++
++
+ def test_imperativeskip_on_xfail_test(testdir):
+     testdir.makepyfile(
+         """

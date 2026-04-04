@@ -1,5 +1,8 @@
 # Experiment artifacts (generated at runtime)
 experiments/*/repo/
+experiments/*/env-check-work/
+experiments/**/work
+experiments/**/validation/work
 
 # Vendored datasets (large, clone separately)
 datasets/swe-bench/
@@ -51,3 +54,4 @@ env/
 Thumbs.db
 .AppleDouble
 .LSOverride
+experiments/*/results-v1-host/

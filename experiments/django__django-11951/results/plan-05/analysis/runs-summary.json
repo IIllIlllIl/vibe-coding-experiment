@@ -2,7 +2,7 @@
   "experiment": "django__django-11951",
   "runs_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results/plan-05/runs",
   "analysis_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results/plan-05/analysis",
-  "generated_at": "2026-04-01T15:58:01.816584+00:00",
+  "generated_at": "2026-04-03T12:46:16.094346+00:00",
   "total_runs": 5,
   "successful_runs": 5,
   "failed_runs": 0,
@@ -14,8 +14,8 @@
       "run_id": 1,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T15:49:51.509629+00:00",
-      "end_time": "2026-04-01T15:50:10.416674+00:00",
+      "start_time": "2026-04-02T17:38:29.616630+00:00",
+      "end_time": "2026-04-02T17:39:33.154630+00:00",
       "changed_files_count": 1,
       "diff_size": 876,
       "error": ""
@@ -24,8 +24,8 @@
       "run_id": 2,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T15:51:55.377505+00:00",
-      "end_time": "2026-04-01T15:52:10.976535+00:00",
+      "start_time": "2026-04-02T17:39:58.407927+00:00",
+      "end_time": "2026-04-02T17:41:05.450927+00:00",
       "changed_files_count": 1,
       "diff_size": 876,
       "error": ""
@@ -34,8 +34,8 @@
       "run_id": 3,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T15:54:08.907373+00:00",
-      "end_time": "2026-04-01T15:54:25.565634+00:00",
+      "start_time": "2026-04-02T17:41:30.696299+00:00",
+      "end_time": "2026-04-02T17:42:38.524299+00:00",
       "changed_files_count": 1,
       "diff_size": 876,
       "error": ""
@@ -44,8 +44,8 @@
       "run_id": 4,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T15:56:07.537510+00:00",
-      "end_time": "2026-04-01T15:56:23.554607+00:00",
+      "start_time": "2026-04-02T17:43:02.345888+00:00",
+      "end_time": "2026-04-02T17:43:48.844888+00:00",
       "changed_files_count": 1,
       "diff_size": 876,
       "error": ""
@@ -54,8 +54,8 @@
       "run_id": 5,
       "status": "success",
       "exit_code": 0,
-      "start_time": "2026-04-01T15:57:43.295390+00:00",
-      "end_time": "2026-04-01T15:57:59.802577+00:00",
+      "start_time": "2026-04-02T17:44:13.485950+00:00",
+      "end_time": "2026-04-02T17:45:17.761950+00:00",
       "changed_files_count": 1,
       "diff_size": 876,
       "error": ""
@@ -76,16 +76,16 @@
     }
   },
   "durations_seconds": {
-    "min": 15.59903,
-    "max": 18.907045,
-    "avg": 16.737724,
-    "range": 3.3080149999999993
+    "min": 46.499,
+    "max": 67.828,
+    "avg": 61.836800000000004,
+    "range": 21.329
   },
   "tokens": {
-    "average_input_tokens": 14759.2,
-    "average_output_tokens": 1001.6,
-    "average_cache_read_input_tokens": 314291.2,
-    "average_total_tokens": 15760.8
+    "average_input_tokens": 14749.2,
+    "average_output_tokens": 806.6,
+    "average_cache_read_input_tokens": 254784.0,
+    "average_total_tokens": 15555.8
   },
   "validation": {
     "total_validated": 5,

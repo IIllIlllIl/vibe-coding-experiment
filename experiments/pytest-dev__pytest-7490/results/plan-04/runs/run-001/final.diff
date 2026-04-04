@@ -12,12 +12,12 @@ index 335e10996..9e6c55c89 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..e2e706032 100644
+index 8fceb37aa..f4a084e79 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
-@@ -545,6 +545,32 @@ class TestXFail:
-         assert result.ret == (1 if strict else 0)
- 
+@@ -275,6 +275,31 @@ class TestXFail:
+         assert not hasattr(callreport, "wasxfail")
+         assert "xfail" in callreport.keywords
  
 +    def test_dynamic_xfail_during_test(self, testdir):
 +        p = testdir.makepyfile(
@@ -44,7 +44,6 @@ index 8fceb37aa..e2e706032 100644
 +        result = testdir.runpytest(p, "-rxX")
 +        result.stdout.fnmatch_lines(["*1 xpassed*"])
 +
-+
- class TestXFailwithSetupTeardown:
-     def test_failing_setup_issue9(self, testdir):
-         testdir.makepyfile(
+     def test_xfail_not_report_default(self, testdir):
+         p = testdir.makepyfile(
+             test_one="""

@@ -25,14 +25,16 @@ This project studies **execution variability in Claude Code** when given fixed p
 - **Fixed plan**: Identical instructions for each run of the same plan
 - **Fixed model settings**: Same Claude Code version, model
 - **Isolation**: Each run operates on an independent copy of the repository
-- **Permission mode**: `acceptEdits` — allows Claude to write files without prompting
+- **Permission mode**: configurable (`acceptEdits` by default; `bypassPermissions` for Docker execution mode)
 - **Validation environment**: Same Docker image reused across runs
+- **Execution mode**: Claude Code can run on the host (default) or inside a Docker container (`--execution-mode docker`)
 
 ### Measured Variables
 - Execution status (success / timeout / no_changes / partial / failed)
 - Code changes produced (diff size, files modified)
 - Validation correctness (functional score, regression score)
-- Duration and token usage
+- Duration (extracted from `transcript.json` `duration_ms`, not file mtime)
+- Token usage: `input_tokens`, `output_tokens`, `cache_read_input_tokens` (reported separately due to different pricing)
 
 ### Run Status Classification
 
@@ -67,10 +69,10 @@ vibe-coding-experiment/
 ├── .env.example              # Required environment variables
 ├── .gitignore
 ├── scripts/
-│   ├── run-experiment.py      # Single-plan runner
+│   ├── run-experiment.py      # Single-plan runner (supports host & Docker execution, --revalidate)
 │   ├── run-multi-plan.py      # Multi-plan orchestrator (single task)
 │   ├── run-batch.py            # Batch runner across multiple tasks
-│   ├── build-env.py           # Build Docker validation image
+│   ├── build-env.py           # Build Docker validation image (+ optional Claude executor image)
 │   ├── check-env.py           # Validate image with test_patch + gold_patch
 │   ├── setup-task.py          # Clone repo and set up experiment directory
 │   ├── download-verified.py   # Download SWE-bench Verified dataset
@@ -89,30 +91,38 @@ vibe-coding-experiment/
 │   │   └── selection-rationale.md
 │   └── swe-bench/             # SWE-bench (vendored)
 ├── experiments/               # Experiment data
-│   ├── exp-001-django-10924/   # Pilot experiment (Django)
-│   │   ├── plans/              # Manually created plans
-│   │   ├── results/            # Per-plan run outputs
-│   │   │   └── plan-XX/
-│   │   │       ├── plan.md          # Snapshot of plan used
-│   │   │       ├── analysis/        # Aggregated run statistics
-│   │   │       └── runs/
-│   │   │           └── run-NNN/
-│   │   │               ├── final.diff              # Claude's changes (incl. new files)
-│   │   │               ├── transcript.json         # Full Claude Code session
-│   │   │               ├── changed-files.txt       # List of modified files
-│   │   │               ├── commit-info.txt         # Base commit hash
-│   │   │               ├── validation-results.json # Test results + diff_exclusions
-│   │   │               ├── work/                   # Repo copy with Claude's changes
-│   │   │               └── validation/work/        # Separate repo copy for testing
-│   │   ├── repo/               # Target repo snapshot
-│   │   ├── task_full.json      # Task metadata
-│   │   └── ...
-│   ├── <instance_id>/          # One directory per SWE-bench task
+│   ├── django__django-11951/  # SWE-bench task (naming: <repo>__<repo>-<issue>)
 │   │   ├── plans/              # 5 plan files (manually created)
-│   │   ├── results/            # Execution results (same structure)
-│   │   ├── repo/               # Cloned at base_commit
-│   │   └── task_full.json
-│   └── batch-summary.json      # Batch execution summary
+│   │   │   ├── plan-01.md
+│   │   │   ├── ...
+│   │   │   └── plan-05.md
+│   │   ├── results/            # Current experiment results
+│   │   │   ├── plan-XX/
+│   │   │   │   ├── plan.md          # Snapshot of plan used
+│   │   │   │   ├── analysis/        # Aggregated run statistics
+│   │   │   │   │   ├── runs-summary.json
+│   │   │   │   │   └── summary.txt
+│   │   │   │   └── runs/
+│   │   │   │       └── run-NNN/
+│   │   │   │           ├── final.diff              # Claude's changes (incl. new files)
+│   │   │   │           ├── transcript.json         # Full Claude Code session (has duration_ms)
+│   │   │   │           ├── changed-files.txt       # List of modified files
+│   │   │   │           ├── commit-info.txt         # Base commit hash
+│   │   │   │           ├── run-meta.json           # Execution metadata (start/end time, exit_code)
+│   │   │   │           └── validation-results.json # Test results + diff_exclusions
+│   │   ├── results-v1-host/   # Archived: earlier experiment round
+│   │   │   └── plan-XX/       # (same structure as results/)
+│   │   ├── comparative-analysis/  # Cross-plan comparison
+│   │   │   ├── comparison-summary.json
+│   │   │   └── comparison-report.txt
+│   │   ├── repo/               # Target repo snapshot (gitignored)
+│   │   ├── task_full.json      # SWE-bench task metadata
+│   │   ├── base-commit.txt     # Base commit hash
+│   │   ├── env-image.txt       # Docker image tag
+│   │   └── plan-prompt.md      # Prompt template for plan generation
+│   ├── pytest-dev__pytest-7490/   # (same structure)
+│   ├── exp-001-django-10924/      # Pilot experiment (legacy naming)
+│   └── batch-summary.json         # Batch execution summary
 └── docs/
     ├── SETUP_COMPLETE.md
     └── RECONSTRUCTION_GUIDE.md
@@ -202,12 +212,24 @@ experiments/django__django-11951/
 ### 6. Build and Validate Docker Images
 
 ```bash
-# Build for a specific task
+# Build validation image for a specific task
 python scripts/build-env.py experiments/django__django-11951
+
+# Also build a Claude-enabled executor image (for Docker execution mode)
+python scripts/build-env.py experiments/django__django-11951 --with-claude
 
 # Validate the environment
 python scripts/check-env.py experiments/django__django-11951 --image swe-env:django-django-11951
 ```
+
+Two Docker images are involved:
+
+| Image | Tag format | Purpose | Built by |
+|-------|-----------|---------|----------|
+| **Validation image** | `swe-env:<task>` | Isolated test runner | `build-env.py` |
+| **Executor image** | `claude-executor:<task>` | Claude Code execution inside Docker | `build-env.py --with-claude` |
+
+The executor image layers Node.js + Claude CLI on top of the validation image, so Claude has access to the same project dependencies when running inside the container.
 
 The env check runs a two-phase validation:
 
@@ -232,11 +254,26 @@ On failure, the script generates diagnostic outputs:
 
 ### 7. Run Experiments
 
+#### Execution Modes
+
+Claude Code can run in two modes:
+
+| Mode | Flag | Description |
+|------|------|-------------|
+| **Host** (default) | `--execution-mode host` | Claude Code runs directly on the host machine |
+| **Docker** | `--execution-mode docker` | Claude Code runs inside a Docker container with project dependencies |
+
+In Docker mode, the executor image is auto-built if missing. The API key is passed via a temporary `--env-file` (not exposed in `ps`). Resource limits can be set with `--docker-cpus` and `--docker-memory`.
+
 #### Single task (multi-plan)
 
 ```bash
-# Run all plans for one task, 5 runs each
+# Run all plans for one task, 5 runs each (host mode)
 python scripts/run-multi-plan.py experiments/django__django-11951 --runs 5
+
+# Run in Docker mode (Claude executes inside container with full deps)
+python scripts/run-multi-plan.py experiments/django__django-11951 --runs 5 \
+  --execution-mode docker --claude-permission-mode bypassPermissions
 ```
 
 #### Batch (all tasks)
@@ -248,12 +285,31 @@ python scripts/run-batch.py --dry-run --runs 5
 # Run all tasks with 5 plans x 5 runs
 python scripts/run-batch.py --runs 5
 
+# Run in Docker mode with resource limits
+python scripts/run-batch.py --runs 5 \
+  --execution-mode docker \
+  --claude-permission-mode bypassPermissions \
+  --docker-cpus 2 --docker-memory 4g
+
 # Run only specific tasks
 python scripts/run-batch.py --runs 5 --only django__django-11951 sympy__sympy-12481
 
 # Force rebuild Docker images
 python scripts/run-batch.py --runs 5 --rebuild-env
 ```
+
+#### CLI Reference for Execution Mode
+
+| Flag | Values | Default | Description |
+|------|--------|---------|-------------|
+| `--execution-mode` | `host`, `docker` | `host` | Where Claude Code runs |
+| `--claude-permission-mode` | any valid mode | `acceptEdits` | Permission mode for Claude Code |
+| `--docker-cpus` | e.g. `2` | none | CPU limit for container |
+| `--docker-memory` | e.g. `4g` | none | Memory limit for container |
+| `--revalidate` | flag | off | Re-run validation for existing runs and rebuild summary (does NOT re-run Claude) |
+| `--keep-work` | flag | off | Keep `work/` and `validation/` directories after each run |
+
+These flags are available in `run-experiment.py`, `run-multi-plan.py`, and `run-batch.py`.
 
 ### 8. Review Results
 
@@ -268,6 +324,28 @@ After multi-plan execution, check:
 After batch execution, check:
 - `experiments/batch-summary.json` — all tasks summary
 
+### 9. Revalidate Existing Runs
+
+If the validation pipeline is fixed (e.g., diff filtering bug), you can re-run validation for all existing runs without re-running Claude:
+
+```bash
+# Revalidate all plans for one task
+for plan in plan-01 plan-02 plan-03 plan-04 plan-05; do
+  python scripts/run-experiment.py experiments/django__django-11951 \
+    --revalidate \
+    --validation-image swe-env:django-django-11951 \
+    --runs-dir experiments/django__django-11951/results/$plan/runs \
+    --analysis-dir experiments/django__django-11951/results/$plan/analysis
+done
+
+# Rebuild summaries only (no Docker validation)
+python scripts/run-experiment.py experiments/django__django-11951 \
+  --runs 0 --plan-file experiments/django__django-11951/plans/plan-01.md \
+  --runs-dir experiments/django__django-11951/results/plan-01/runs \
+  --analysis-dir experiments/django__django-11951/results/plan-01/analysis \
+  --validation-image swe-env:django-django-11951
+```
+
 ### Resume Semantics
 
 - `run-experiment.py` rebuilds `runs-summary.json` from everything already present under the target `runs_dir`
@@ -275,6 +353,65 @@ After batch execution, check:
 - If a plan is partially complete, the orchestrator detects missing `run-NNN` directories and only runs the missing run numbers
 - `run-batch.py` skips tasks with no experiment directory or no plan files
 - Each plan snapshot is copied to `results/plan-XX/plan.md` so outputs remain self-contained
+
+### Data Versions
+
+Archived results are kept alongside the current `results/` directory with a descriptive suffix:
+
+| Directory | Mode | Tasks | Plans x Runs | Date |
+|-----------|------|-------|-------------|------|
+| `results/` | host, `acceptEdits` | django\_\_django-11951, pytest-dev\_\_pytest-7490 | 5 plans x 5 runs each | 2026-04-02 |
+| `results-v1-host/` | host, `acceptEdits` | django\_\_django-11951, pytest-dev\_\_pytest-7490 | 5 plans x 5 runs each | 2026-04-01 |
+
+To start a new experiment round, archive the current `results/` directory and delete the original so the resume mechanism starts fresh.
+
+### Bug Fix History
+
+**2026-04-03** — Critical data extraction bugs fixed in `scripts/run-experiment.py`:
+
+| Bug | Impact | Fix |
+|-----|--------|-----|
+| `filter_diff_excluding_paths` missing trailing `\n` | `git apply` always failed → all `claude_patch=false` | Added `+ "\n"` to return value |
+| `collect_results` ran `git reset HEAD` before `--name-only` | `changed_files_count` always 0 | Reordered; added fallback parsing from `final.diff` |
+| Duration used file mtime instead of `transcript.json` `duration_ms` | Times off by 10-100x | Extract `duration_ms` from transcript; priority: `run-meta.json` > transcript > mtime |
+| `start_time`/`end_time` not persisted | Lost on rebuild | Write `run-meta.json` after each run |
+| Duration displayed as integer | Lost precision | Changed to `.1f` format |
+
+All historical runs were re-validated using `--revalidate` mode. Summary data was rebuilt from fixed artifacts. No `final.diff` or `transcript.json` files were modified.
+
+**2026-04-04** — SKIPPED test status parsing fix in `scripts/run-experiment.py`:
+
+| Bug | Impact | Fix |
+|-----|--------|-----|
+| `parse_pytest_output` regex missing `SKIPPED` status | SKIPPED tests reported as `NOT_FOUND` → false `pass_to_pass` failures | Added `SKIPPED` to regex; added `skipped_set` tracking; `evaluate_expectations` accepts `SKIPPED` for pass_to_pass |
+
+Also affected `scripts/check-env.py`: `evaluate_expectations` now treats `SKIPPED` as acceptable for `pass_to_pass` tests.
+
+## Environment Notes
+
+### Non-reproducible Tasks
+
+| Task | Issue |
+|------|-------|
+| matplotlib__matplotlib-24870 | `test_contour_addlines[png]` image comparison fails in Docker (RMS 0.146). Replaced with `pylint-dev__pylint-4970`. |
+
+### Tasks That Failed Env Setup
+
+| Task | Issue |
+|------|-------|
+| sphinx-doc__sphinx-9258 | pytest collected 0 tests (likely missing test dependencies in Docker slim image) |
+| pallets__flask-5014 | `werkzeug.__version__` not found in newer werkzeug; version incompatibility |
+| sympy__sympy-24443 | `fail_to_pass` test already passes without gold patch (task data quality issue) |
+
+### Security Warning
+
+`--claude-permission-mode bypassPermissions` allows Claude Code to execute arbitrary commands without confirmation. When using `--execution-mode host`, Claude runs directly on your machine with full access. **Only use `bypassPermissions` in Docker execution mode** where the container provides isolation. In host mode, use `acceptEdits` (default) to retain manual approval of file edits.
+
+The code does **not** use `--allowedTools` to restrict Claude's available tools. If finer-grained control is needed, patch the `claude` command invocation in `run-experiment.py` to add tool restrictions.
+
+### --revalidate Overwrite
+
+The `--revalidate` flag re-runs validation for existing runs and **overwrites** `validation-results.json` without backup. The original file can be recovered via `git checkout` if needed. Other run artifacts (`transcript.json`, `final.diff`, `changed-files.txt`) are never modified by revalidation.
 
 ## Research Questions
 

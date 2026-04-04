@@ -1,0 +1,133 @@
+{
+  "experiment": "pylint-dev__pylint-4970",
+  "image": "swe-env:pylint-dev-pylint-4970",
+  "checks": {
+    "test_patch_only": {
+      "patches_applied": {
+        "test_patch": true
+      },
+      "test_file_check": {
+        "test_file_expected": true,
+        "expected_test_file": "tests/checkers/unittest_similar.py",
+        "test_file_created": true,
+        "test_file_size": 14368
+      },
+      "test_results": {
+        "success": false,
+        "fail_to_pass_results": {
+          "tests/checkers/unittest_similar.py::test_set_duplicate_lines_to_zero": "FAILED"
+        },
+        "pass_to_pass_results": {
+          "tests/checkers/unittest_similar.py::test_ignore_comments": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_docstrings": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_multiline_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_multiline_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_fail": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_pass": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_fail": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_pass": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_fail": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_pass": "PASSED",
+          "tests/checkers/unittest_similar.py::test_no_hide_code_with_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_nothing": "PASSED",
+          "tests/checkers/unittest_similar.py::test_lines_without_meaningful_content_do_not_trigger_similarity": "PASSED",
+          "tests/checkers/unittest_similar.py::test_help": "PASSED",
+          "tests/checkers/unittest_similar.py::test_no_args": "PASSED",
+          "tests/checkers/unittest_similar.py::test_get_map_data": "PASSED"
+        },
+        "total_tests": 19,
+        "passed_tests": 17,
+        "failed_tests": 2,
+        "output": "Obtaining file:///workspace\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nRequirement already satisfied: platformdirs>=2.2.0 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (4.9.4)\nRequirement already satisfied: astroid<2.8,>=2.7.3 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (2.7.3)\nRequirement already satisfied: isort<6,>=4.2.5 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (5.13.2)\nRequirement already satisfied: mccabe<0.7,>=0.6 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (0.6.1)\nRequirement already satisfied: toml>=0.7.1 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (0.10.2)\nRequirement already satisfied: lazy-object-proxy>=1.4.0 in /usr/local/lib/python3.10/site-packages (from astroid<2.8,>=2.7.3->pylint==2.10.3.dev0) (1.12.0)\nRequirement already satisfied: wrapt<1.13,>=1.11 in /usr/local/lib/python3.10/site-packages (from astroid<2.8,>=2.7.3->pylint==2.10.3.dev0) (1.12.1)\nRequirement already satisfied: setuptools>=20.0 in /usr/local/lib/python3.10/site-packages (from astroid<2.8,>=2.7.3->pylint==2.10.3.dev0) (82.0.1)\nBuilding wheels for collected packages: pylint\n  Building editable for pylint (pyproject.toml): started\n  Building editable for pylint (pyproject.toml): finished with status 'done'\n  Created wheel for pylint: filename=pylint-2.10.3.dev0-0.editable-py3-none-any.whl size=18272 sha256=3ebea63bccb5d5657066c7a9127e21a4aeffc8def317fd333dd76c6141b38cc7\n  Stored in directory: /tmp/pip-ephem-wheel-cache-xeo4mde3/wheels/80/75/f6/d63789e3414f7f88206102fa596a8ddafc889f48984e8712b3\nSuccessfully built pylint\nInstalling collected packages: pylint\n  Attempting uninstall: pylint\n    Found existing installation: pylint 2.10.3.dev0\n    Uninstalling pylint-2.10.3.dev0:\n      Successfully uninstalled pylint-2.10.3.dev0\nSuccessfully installed pylint-2.10.3.dev0\n============================= test session starts ==============================\nplatform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/bin/python\ncachedir: .pytest_cache\nrootdir: /workspace\nconfigfile: setup.cfg\ncollecting ... collected 18 items\n\ntests/checkers/unittest_similar.py::test_ignore_comments PASSED          [  5%]\ntests/checkers/unittest_similar.py::test_ignore_docstrings PASSED        [ 11%]\ntests/checkers/unittest_similar.py::test_ignore_imports PASSED           [ 16%]\ntests/checkers/unittest_similar.py::test_multiline_imports PASSED        [ 22%]\ntests/checkers/unittest_similar.py::test_ignore_multiline_imports PASSED [ 27%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_fail PASSED   [ 33%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_pass PASSED   [ 38%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_fail PASSED [ 44%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_pass PASSED [ 50%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_fail PASSED [ 55%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_pass PASSED [ 61%]\ntests/checkers/unittest_similar.py::test_no_hide_code_with_imports PASSED [ 66%]\ntests/checkers/unittest_similar.py::test_ignore_nothing PASSED           [ 72%]\ntests/checkers/unittest_similar.py::test_lines_without_meaningful_content_do_not_trigger_similarity PASSED [ 77%]\ntests/checkers/unittest_similar.py::test_help PASSED                     [ 83%]\ntests/checkers/unittest_similar.py::test_no_args PASSED                  [ 88%]\ntests/checkers/unittest_similar.py::test_get_map_data PASSED             [ 94%]\ntests/checkers/unittest_similar.py::test_set_duplicate_lines_to_zero FAILED [100%]\n\n=================================== FAILURES ===================================\n_______________________ test_set_duplicate_lines_to_zero _______________________\ntests/checkers/unittest_similar.py:512: in test_set_duplicate_lines_to_zero\n    assert output.getvalue() == \"\"\nE   AssertionError: assert 'TOTAL lines=...cent=0.00\\n\\n' == ''\nE     \nE     + TOTAL lines=62 duplicates=0 percent=0.00\nE     +\n=========================== short test summary info ============================\nFAILED tests/checkers/unittest_similar.py::test_set_duplicate_lines_to_zero\n========================= 1 failed, 17 passed in 0.09s =========================\n",
+        "image": "swe-env:pylint-dev-pylint-4970",
+        "docker_command": [
+          "docker",
+          "run",
+          "--rm",
+          "-v",
+          "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pylint-dev__pylint-4970/env-check-work/check-a:/workspace",
+          "-w",
+          "/workspace",
+          "swe-env:pylint-dev-pylint-4970",
+          "bash",
+          "-lc",
+          "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest tests/checkers/unittest_similar.py -v -W ignore::DeprecationWarning --tb=short 2>&1"
+        ],
+        "container_command": "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest tests/checkers/unittest_similar.py -v -W ignore::DeprecationWarning --tb=short 2>&1",
+        "exit_code": 1,
+        "framework": "pytest"
+      },
+      "expectations": {
+        "fail_to_pass_expectation_met": true,
+        "pass_to_pass_expectation_met": true,
+        "overall": true
+      }
+    },
+    "test_patch_plus_gold_patch": {
+      "patches_applied": {
+        "test_patch": true,
+        "gold_patch": true
+      },
+      "test_file_check": {
+        "test_file_expected": true,
+        "expected_test_file": "tests/checkers/unittest_similar.py",
+        "test_file_created": true,
+        "test_file_size": 14368
+      },
+      "test_results": {
+        "success": true,
+        "fail_to_pass_results": {
+          "tests/checkers/unittest_similar.py::test_set_duplicate_lines_to_zero": "PASSED"
+        },
+        "pass_to_pass_results": {
+          "tests/checkers/unittest_similar.py::test_ignore_comments": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_docstrings": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_multiline_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_multiline_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_fail": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_pass": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_fail": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_pass": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_fail": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_pass": "PASSED",
+          "tests/checkers/unittest_similar.py::test_no_hide_code_with_imports": "PASSED",
+          "tests/checkers/unittest_similar.py::test_ignore_nothing": "PASSED",
+          "tests/checkers/unittest_similar.py::test_lines_without_meaningful_content_do_not_trigger_similarity": "PASSED",
+          "tests/checkers/unittest_similar.py::test_help": "PASSED",
+          "tests/checkers/unittest_similar.py::test_no_args": "PASSED",
+          "tests/checkers/unittest_similar.py::test_get_map_data": "PASSED"
+        },
+        "total_tests": 18,
+        "passed_tests": 18,
+        "failed_tests": 0,
+        "output": "Obtaining file:///workspace\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nRequirement already satisfied: platformdirs>=2.2.0 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (4.9.4)\nRequirement already satisfied: astroid<2.8,>=2.7.3 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (2.7.3)\nRequirement already satisfied: isort<6,>=4.2.5 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (5.13.2)\nRequirement already satisfied: mccabe<0.7,>=0.6 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (0.6.1)\nRequirement already satisfied: toml>=0.7.1 in /usr/local/lib/python3.10/site-packages (from pylint==2.10.3.dev0) (0.10.2)\nRequirement already satisfied: lazy-object-proxy>=1.4.0 in /usr/local/lib/python3.10/site-packages (from astroid<2.8,>=2.7.3->pylint==2.10.3.dev0) (1.12.0)\nRequirement already satisfied: wrapt<1.13,>=1.11 in /usr/local/lib/python3.10/site-packages (from astroid<2.8,>=2.7.3->pylint==2.10.3.dev0) (1.12.1)\nRequirement already satisfied: setuptools>=20.0 in /usr/local/lib/python3.10/site-packages (from astroid<2.8,>=2.7.3->pylint==2.10.3.dev0) (82.0.1)\nBuilding wheels for collected packages: pylint\n  Building editable for pylint (pyproject.toml): started\n  Building editable for pylint (pyproject.toml): finished with status 'done'\n  Created wheel for pylint: filename=pylint-2.10.3.dev0-0.editable-py3-none-any.whl size=18272 sha256=6544e3297ae1f21ffe5842407a459a98904fce810a5daad8c1c85819bdd9045b\n  Stored in directory: /tmp/pip-ephem-wheel-cache-0_zfatqb/wheels/80/75/f6/d63789e3414f7f88206102fa596a8ddafc889f48984e8712b3\nSuccessfully built pylint\nInstalling collected packages: pylint\n  Attempting uninstall: pylint\n    Found existing installation: pylint 2.10.3.dev0\n    Uninstalling pylint-2.10.3.dev0:\n      Successfully uninstalled pylint-2.10.3.dev0\nSuccessfully installed pylint-2.10.3.dev0\n============================= test session starts ==============================\nplatform linux -- Python 3.10.20, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/bin/python\ncachedir: .pytest_cache\nrootdir: /workspace\nconfigfile: setup.cfg\ncollecting ... collected 18 items\n\ntests/checkers/unittest_similar.py::test_ignore_comments PASSED          [  5%]\ntests/checkers/unittest_similar.py::test_ignore_docstrings PASSED        [ 11%]\ntests/checkers/unittest_similar.py::test_ignore_imports PASSED           [ 16%]\ntests/checkers/unittest_similar.py::test_multiline_imports PASSED        [ 22%]\ntests/checkers/unittest_similar.py::test_ignore_multiline_imports PASSED [ 27%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_fail PASSED   [ 33%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_pass PASSED   [ 38%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_fail PASSED [ 44%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_class_methods_pass PASSED [ 50%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_fail PASSED [ 55%]\ntests/checkers/unittest_similar.py::test_ignore_signatures_empty_functions_pass PASSED [ 61%]\ntests/checkers/unittest_similar.py::test_no_hide_code_with_imports PASSED [ 66%]\ntests/checkers/unittest_similar.py::test_ignore_nothing PASSED           [ 72%]\ntests/checkers/unittest_similar.py::test_lines_without_meaningful_content_do_not_trigger_similarity PASSED [ 77%]\ntests/checkers/unittest_similar.py::test_help PASSED                     [ 83%]\ntests/checkers/unittest_similar.py::test_no_args PASSED                  [ 88%]\ntests/checkers/unittest_similar.py::test_get_map_data PASSED             [ 94%]\ntests/checkers/unittest_similar.py::test_set_duplicate_lines_to_zero PASSED [100%]\n\n============================== 18 passed in 0.06s ==============================\n",
+        "image": "swe-env:pylint-dev-pylint-4970",
+        "docker_command": [
+          "docker",
+          "run",
+          "--rm",
+          "-v",
+          "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pylint-dev__pylint-4970/env-check-work/check-b:/workspace",
+          "-w",
+          "/workspace",
+          "swe-env:pylint-dev-pylint-4970",
+          "bash",
+          "-lc",
+          "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest tests/checkers/unittest_similar.py -v -W ignore::DeprecationWarning --tb=short 2>&1"
+        ],
+        "container_command": "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest tests/checkers/unittest_similar.py -v -W ignore::DeprecationWarning --tb=short 2>&1",
+        "exit_code": 0,
+        "framework": "pytest"
+      },
+      "expectations": {
+        "fail_to_pass_expectation_met": true,
+        "pass_to_pass_expectation_met": true,
+        "overall": true
+      }
+    }
+  },
+  "overall": true,
+  "env_status": "pass"
+}

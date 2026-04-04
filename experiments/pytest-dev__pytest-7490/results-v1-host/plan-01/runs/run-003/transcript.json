@@ -1,0 +1,135 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 328017,
+  "duration_api_ms": 302765,
+  "num_turns": 46,
+  "result": "Implementation complete. Here's what was done:\n\n**`src/_pytest/skipping.py`** \u2014 Added post-yield re-evaluation of xfail marks in `pytest_runtest_call` (lines 258-261). After the test body executes (which may dynamically add an xfail marker), if no xfail was previously found, it re-evaluates so `pytest_runtest_makereport` picks up the dynamically added marker.\n\n**`testing/test_skipping.py`** \u2014 Added `test_dynamic_xfail_set_during_test` to `TestXFail` class, verifying that `request.node.add_marker(pytest.mark.xfail(...))` inside a test body causes the test to be treated as xfail.\n\n**Verification**: All 80 tests in `test_skipping.py` pass, and the exact reproducer from the issue now correctly shows `XFAIL` instead of `FAIL`.",
+  "stop_reason": "end_turn",
+  "session_id": "1915611b-a061-4026-b825-ef7d1229e225",
+  "total_cost_usd": 0.5158152,
+  "usage": {
+    "input_tokens": 28448,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1248704,
+    "output_tokens": 3724,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-sonnet-4-6": {
+      "inputTokens": 28448,
+      "outputTokens": 3724,
+      "cacheReadInputTokens": 1248704,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.5158152,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_a91fc1fd0b4a4b0d9925bf4a",
+      "tool_input": {
+        "command": "python3 -c \"import sys; sys.path.insert(0, 'src'); from _pytest.pytester import Testdir; print('OK')\" 2>&1",
+        "description": "Check if Testdir is available in the local src"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_dffb9c16c96046d4bb631959",
+      "tool_input": {
+        "command": "PYTHONPATH=src python -m pytest testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_test -xvs 2>&1 | tail -30",
+        "timeout": 60000,
+        "description": "Run test with PYTHONPATH set to local src"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_41adcc8e863f4b00a811a46f",
+      "tool_input": {
+        "command": "PYTHONPATH=src python -m pytest testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_test -xvs 2>&1 | tail -30",
+        "timeout": 60000,
+        "description": "Run new test with local src on PYTHONPATH"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_5ca183c06ad740a8b4157efb",
+      "tool_input": {
+        "command": "export PYTHONPATH=src && python -m pytest testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_test -xvs 2>&1 | tail -30",
+        "timeout": 60000,
+        "description": "Run new test with PYTHONPATH"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_158371c302d049a3a8794aba",
+      "tool_input": {
+        "command": "pip show pytest 2>&1 | head -10",
+        "description": "Show installed pytest location"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_11e34bbb1ad743428218fb67",
+      "tool_input": {
+        "command": "pip show pytest",
+        "description": "Show installed pytest info"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_02a461437faa44a3ad26c5e5",
+      "tool_input": {
+        "command": "pip show pytest",
+        "description": "Show installed pytest info"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_0ae83f10219b4ee7aafc7c9f",
+      "tool_input": {
+        "command": "ls /Users/taoran.wang/Library/Python/3.9/lib/python/site-packages/pytest.egg-link 2>/dev/null && cat /Users/taoran.wang/Library/Python/3.9/lib/python/site-packages/pytest.egg-link 2>/dev/null || echo \"no egg-link\"",
+        "description": "Check egg-link for editable install"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_79f8359324ee493c9c8ceae4",
+      "tool_input": {
+        "command": "cat /Users/taoran.wang/Library/Python/3.9/lib/python/site-packages/pytest.egg-link",
+        "description": "Check editable install path"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "call_9c01f0497e6a49d4accaa9c7",
+      "tool_input": {
+        "command": "cat > /tmp/test_foo.py << 'EOF'\nimport pytest\ndef test_xfail_test(request):\n    mark = pytest.mark.xfail(reason=\"xfail\")\n    request.node.add_marker(mark)\n    assert 0\nEOF\npython -m pytest /tmp/test_foo.py -rsx -p no:cov 2>&1",
+        "timeout": 30000,
+        "description": "Verify issue reproducer"
+      }
+    }
+  ],
+  "fast_mode_state": "off",
+  "uuid": "a4dc02d9-4b3f-4bee-a937-d7cdbfb387fb",
+  "raw_stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":false,\"duration_ms\":328017,\"duration_api_ms\":302765,\"num_turns\":46,\"result\":\"Implementation complete. Here's what was done:\\n\\n**`src/_pytest/skipping.py`** \u2014 Added post-yield re-evaluation of xfail marks in `pytest_runtest_call` (lines 258-261). After the test body executes (which may dynamically add an xfail marker), if no xfail was previously found, it re-evaluates so `pytest_runtest_makereport` picks up the dynamically added marker.\\n\\n**`testing/test_skipping.py`** \u2014 Added `test_dynamic_xfail_set_during_test` to `TestXFail` class, verifying that `request.node.add_marker(pytest.mark.xfail(...))` inside a test body causes the test to be treated as xfail.\\n\\n**Verification**: All 80 tests in `test_skipping.py` pass, and the exact reproducer from the issue now correctly shows `XFAIL` instead of `FAIL`.\",\"stop_reason\":\"end_turn\",\"session_id\":\"1915611b-a061-4026-b825-ef7d1229e225\",\"total_cost_usd\":0.5158152,\"usage\":{\"input_tokens\":28448,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":1248704,\"output_tokens\":3724,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-4-6\":{\"inputTokens\":28448,\"outputTokens\":3724,\"cacheReadInputTokens\":1248704,\"cacheCreationInputTokens\":0,\"webSearchRequests\":0,\"costUSD\":0.5158152,\"contextWindow\":200000,\"maxOutputTokens\":32000}},\"permission_denials\":[{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_a91fc1fd0b4a4b0d9925bf4a\",\"tool_input\":{\"command\":\"python3 -c \\\"import sys; sys.path.insert(0, 'src'); from _pytest.pytester import Testdir; print('OK')\\\" 2>&1\",\"description\":\"Check if Testdir is available in the local src\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_dffb9c16c96046d4bb631959\",\"tool_input\":{\"command\":\"PYTHONPATH=src python -m pytest testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_test -xvs 2>&1 | tail -30\",\"timeout\":60000,\"description\":\"Run test with PYTHONPATH set to local src\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_41adcc8e863f4b00a811a46f\",\"tool_input\":{\"command\":\"PYTHONPATH=src python -m pytest testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_test -xvs 2>&1 | tail -30\",\"timeout\":60000,\"description\":\"Run new test with local src on PYTHONPATH\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_5ca183c06ad740a8b4157efb\",\"tool_input\":{\"command\":\"export PYTHONPATH=src && python -m pytest testing/test_skipping.py::TestXFail::test_dynamic_xfail_set_during_test -xvs 2>&1 | tail -30\",\"timeout\":60000,\"description\":\"Run new test with PYTHONPATH\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_158371c302d049a3a8794aba\",\"tool_input\":{\"command\":\"pip show pytest 2>&1 | head -10\",\"description\":\"Show installed pytest location\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_11e34bbb1ad743428218fb67\",\"tool_input\":{\"command\":\"pip show pytest\",\"description\":\"Show installed pytest info\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_02a461437faa44a3ad26c5e5\",\"tool_input\":{\"command\":\"pip show pytest\",\"description\":\"Show installed pytest info\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_0ae83f10219b4ee7aafc7c9f\",\"tool_input\":{\"command\":\"ls /Users/taoran.wang/Library/Python/3.9/lib/python/site-packages/pytest.egg-link 2>/dev/null && cat /Users/taoran.wang/Library/Python/3.9/lib/python/site-packages/pytest.egg-link 2>/dev/null || echo \\\"no egg-link\\\"\",\"description\":\"Check egg-link for editable install\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_79f8359324ee493c9c8ceae4\",\"tool_input\":{\"command\":\"cat /Users/taoran.wang/Library/Python/3.9/lib/python/site-packages/pytest.egg-link\",\"description\":\"Check editable install path\"}},{\"tool_name\":\"Bash\",\"tool_use_id\":\"call_9c01f0497e6a49d4accaa9c7\",\"tool_input\":{\"command\":\"cat > /tmp/test_foo.py << 'EOF'\\nimport pytest\\ndef test_xfail_test(request):\\n    mark = pytest.mark.xfail(reason=\\\"xfail\\\")\\n    request.node.add_marker(mark)\\n    assert 0\\nEOF\\npython -m pytest /tmp/test_foo.py -rsx -p no:cov 2>&1\",\"timeout\":30000,\"description\":\"Verify issue reproducer\"}}],\"fast_mode_state\":\"off\",\"uuid\":\"a4dc02d9-4b3f-4bee-a937-d7cdbfb387fb\"}\n",
+  "stderr": "",
+  "exit_code": 0,
+  "command": "claude -p --permission-mode acceptEdits --output-format json",
+  "cwd": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-01/runs/run-003/work"
+}

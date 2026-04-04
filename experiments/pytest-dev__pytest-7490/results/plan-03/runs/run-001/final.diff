@@ -13,7 +13,7 @@ index 335e10996..f83759c86 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..e8ebba143 100644
+index 8fceb37aa..8cda61af1 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
 @@ -425,6 +425,33 @@ class TestXFail:
@@ -44,7 +44,7 @@ index 8fceb37aa..e8ebba143 100644
 +        """
 +        )
 +        result = testdir.runpytest(p, "-rxX")
-+        result.stdout.fnmatch_lines(["*test_this*", "*XPASS(strict)*"])
++        result.stdout.fnmatch_lines(["*XPASS(strict)*test_this*"])
 +        assert result.ret != 0
 +
      @pytest.mark.parametrize(

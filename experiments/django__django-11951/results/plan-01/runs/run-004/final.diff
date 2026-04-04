@@ -13,7 +13,7 @@ index 794e0faae7..92349cd0c5 100644
          bulk_return = connections[self.db].features.can_return_rows_from_bulk_insert
          for item in [objs[i:i + batch_size] for i in range(0, len(objs), batch_size)]:
 diff --git a/tests/bulk_create/tests.py b/tests/bulk_create/tests.py
-index 47aa7afcdc..a0ba3dfef9 100644
+index 47aa7afcdc..89880d2d1f 100644
 --- a/tests/bulk_create/tests.py
 +++ b/tests/bulk_create/tests.py
 @@ -1,4 +1,5 @@
@@ -22,21 +22,23 @@ index 47aa7afcdc..a0ba3dfef9 100644
  
  from django.db import IntegrityError, NotSupportedError, connection
  from django.db.models import FileField, Value
-@@ -278,6 +279,17 @@ class BulkCreateTests(TestCase):
-         with self.assertRaisesMessage(NotSupportedError, message):
-             TwoFields.objects.bulk_create(self.data, ignore_conflicts=True)
+@@ -214,6 +215,19 @@ class BulkCreateTests(TestCase):
+         with self.assertNumQueries(1):
+             TwoFields.objects.bulk_create(objs, len(objs))
  
 +    @skipUnlessDBFeature('has_bulk_insert')
 +    def test_batch_size_respects_max_batch_size(self):
-+        """batch_size is capped when it exceeds the database's max_batch_size."""
-+        objs = [TwoFields(f1=i, f2=i) for i in range(10)]
-+        with self.assertNumQueries(5):
-+            with mock.patch(
-+                'django.db.backends.base.operations.BaseDatabaseOperations.bulk_batch_size',
-+                return_value=2,
-+            ):
-+                TwoFields.objects.bulk_create(objs, batch_size=100)
++        objs = [TwoFields(f1=i, f2=i) for i in range(0, 4)]
++        with mock.patch(
++            'django.db.backends.base.operations.BaseDatabaseOperations.bulk_batch_size',
++            return_value=2,
++        ):
++            # batch_size=4 exceeds the mocked max_batch_size=2,
++            # so 4 objects should be inserted in 2 batches of 2.
++            with self.assertNumQueries(2):
++                TwoFields.objects.bulk_create(objs, batch_size=4)
++        self.assertEqual(TwoFields.objects.count(), 4)
 +
-     @skipUnlessDBFeature('supports_ignore_conflicts')
-     def test_ignore_conflicts_ignore(self):
-         data = [
+     @skipUnlessDBFeature('has_bulk_insert')
+     def test_bulk_insert_expressions(self):
+         Restaurant.objects.bulk_create([

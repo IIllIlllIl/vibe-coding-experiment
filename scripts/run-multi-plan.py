@@ -48,6 +48,29 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print what would be done without executing",
     )
+    parser.add_argument(
+        "--execution-mode",
+        choices=["host", "docker"],
+        default="host",
+        help="Run Claude Code on host or inside Docker (default: host)",
+    )
+    parser.add_argument(
+        "--claude-permission-mode",
+        default="acceptEdits",
+        help="Permission mode for Claude Code (default: acceptEdits)",
+    )
+    parser.add_argument(
+        "--docker-cpus",
+        type=str,
+        default=None,
+        help="CPU limit for Docker container (e.g. '2')",
+    )
+    parser.add_argument(
+        "--docker-memory",
+        type=str,
+        default=None,
+        help="Memory limit for Docker container (e.g. '4g')",
+    )
     return parser.parse_args()
 
 
@@ -161,6 +184,10 @@ def run_single_plan(
     image_tag: str,
     runs_per_plan: int,
     dry_run: bool,
+    execution_mode: str = "host",
+    claude_permission_mode: str = "acceptEdits",
+    docker_cpus: Optional[str] = None,
+    docker_memory: Optional[str] = None,
 ) -> Dict[str, Any]:
     plan_name = plan_path.stem
     result_root = plan_result_root(exp_path, plan_name)
@@ -201,7 +228,15 @@ def run_single_plan(
             str(analysis_dir),
             "--validation-image",
             image_tag,
+            "--execution-mode",
+            execution_mode,
+            "--claude-permission-mode",
+            claude_permission_mode,
         ]
+        if docker_cpus:
+            command.extend(["--docker-cpus", docker_cpus])
+        if docker_memory:
+            command.extend(["--docker-memory", docker_memory])
         run_command(command, f"Refresh summary for {plan_name}", dry_run=dry_run)
         return {
             "plan": plan_name,
@@ -228,7 +263,15 @@ def run_single_plan(
             str(analysis_dir),
             "--validation-image",
             image_tag,
+            "--execution-mode",
+            execution_mode,
+            "--claude-permission-mode",
+            claude_permission_mode,
         ]
+        if docker_cpus:
+            command.extend(["--docker-cpus", docker_cpus])
+        if docker_memory:
+            command.extend(["--docker-memory", docker_memory])
         run_command(command, f"Run {plan_name} / run-{run_num:03d}", dry_run=dry_run)
 
     return {
@@ -458,11 +501,24 @@ def main() -> None:
     print(f"Plans: {', '.join(path.stem for path in plan_files)}")
     print(f"Runs per plan: {args.runs}")
     print(f"Dry run: {args.dry_run}")
+    print(f"Execution mode: {args.execution_mode}")
+    print(f"Permission mode: {args.claude_permission_mode}")
     print(f"Validation image: {image_tag}")
     print("=============================")
 
     try:
         ensure_environment(exp_path, image_tag, args.rebuild_env, args.dry_run)
+
+        # Build claude-executor image if in Docker mode
+        if args.execution_mode == "docker" and not args.dry_run:
+            executor_tag = f"claude-executor:{image_tag.split(':', 1)[-1]}" if ":" in image_tag else f"claude-executor:{image_tag}"
+            executor_file = exp_path / "claude-executor-image.txt"
+            if not executor_file.exists() or executor_file.read_text().strip() != executor_tag:
+                run_command(
+                    [sys.executable, str(BUILD_ENV_SCRIPT), str(exp_path), "--with-claude"],
+                    "Build Claude executor image",
+                    dry_run=False,
+                )
 
         execution_results = []
         for plan_path in plan_files:
@@ -473,6 +529,10 @@ def main() -> None:
                     image_tag=image_tag,
                     runs_per_plan=args.runs,
                     dry_run=args.dry_run,
+                    execution_mode=args.execution_mode,
+                    claude_permission_mode=args.claude_permission_mode,
+                    docker_cpus=args.docker_cpus,
+                    docker_memory=args.docker_memory,
                 )
             )
 

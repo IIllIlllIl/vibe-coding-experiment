@@ -1,49 +1,49 @@
 diff --git a/src/_pytest/skipping.py b/src/_pytest/skipping.py
-index 335e10996..70ca508c6 100644
+index 335e10996..e69b0a6ab 100644
 --- a/src/_pytest/skipping.py
 +++ b/src/_pytest/skipping.py
-@@ -15,6 +15,7 @@ from _pytest.config import hookimpl
- from _pytest.config.argparsing import Parser
- from _pytest.mark.structures import Mark
- from _pytest.nodes import Item
-+from _pytest.outcomes import Failed
- from _pytest.outcomes import fail
- from _pytest.outcomes import skip
- from _pytest.outcomes import xfail
-@@ -262,6 +263,11 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):
+@@ -262,6 +262,8 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):
      outcome = yield
      rep = outcome.get_result()
      xfailed = item._store.get(xfailed_key, None)
 +    if xfailed is None:
-+        try:
-+            xfailed = evaluate_xfail_marks(item)
-+        except Failed:
-+            pass
++        xfailed = evaluate_xfail_marks(item)
      # unittest special case, see setting of unexpectedsuccess_key
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
+diff --git a/test_xfail_dynamic.py b/test_xfail_dynamic.py
+new file mode 100644
+index 000000000..6cc58b412
+--- /dev/null
++++ b/test_xfail_dynamic.py
+@@ -0,0 +1,5 @@
++import pytest
++def test_xfail_test(request):
++    mark = pytest.mark.xfail(reason="xfail")
++    request.node.add_marker(mark)
++    assert 0
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..c72dfe8c7 100644
+index 8fceb37aa..680bbba08 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
-@@ -397,6 +397,20 @@ class TestXFail:
-         result = testdir.runpytest(p, "-rxX")
-         result.stdout.fnmatch_lines(["*XFAIL*test_this*", "*XPASS*test_that*"])
+@@ -425,6 +425,20 @@ class TestXFail:
+         result = testdir.runpytest(p)
+         result.stdout.fnmatch_lines(["*1 xfailed*"])
  
-+    def test_dynamic_xfail_set_in_body(self, testdir):
-+        """Dynamically adding xfail marker in test body (#7490)."""
++    def test_dynamic_xfail_no_run_further(self, testdir):
++        """Test dynamically adding xfail marker inside test body (#7490)."""
 +        p = testdir.makepyfile(
 +            """
 +            import pytest
-+            def test_xfail(request):
-+                mark = pytest.mark.xfail(reason="xfail")
++            def test_xfail_in_body(request):
++                mark = pytest.mark.xfail(reason="dynamically added xfail")
 +                request.node.add_marker(mark)
 +                assert 0
 +        """
 +        )
 +        result = testdir.runpytest(p, "-rxX")
-+        result.stdout.fnmatch_lines(["*XFAIL*test_xfail*", "*xfail*"])
++        result.stdout.fnmatch_lines(["*XFAIL*test_xfail_in_body*"])
 +
-     def test_dynamic_xfail_no_run(self, testdir):
-         p = testdir.makepyfile(
-             """
+     @pytest.mark.parametrize(
+         "expected, actual, matchline",
+         [

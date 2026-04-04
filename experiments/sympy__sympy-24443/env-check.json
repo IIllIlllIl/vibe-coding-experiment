@@ -1,0 +1,101 @@
+{
+  "experiment": "sympy__sympy-24443",
+  "image": "swe-env:sympy-sympy-24443",
+  "checks": {
+    "test_patch_only": {
+      "patches_applied": {
+        "test_patch": true
+      },
+      "test_file_check": {
+        "test_file_expected": true,
+        "expected_test_file": "sympy/combinatorics/tests/test_homomorphisms.py",
+        "test_file_created": true,
+        "test_file_size": 3745
+      },
+      "test_results": {
+        "success": true,
+        "fail_to_pass_results": {
+          "test_homomorphism": "PASSED"
+        },
+        "pass_to_pass_results": {
+          "test_isomorphisms": "PASSED"
+        },
+        "total_tests": 4,
+        "passed_tests": 2,
+        "failed_tests": 2,
+        "output": "Obtaining file:///workspace\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nRequirement already satisfied: mpmath>=0.19 in /usr/local/lib/python3.9/site-packages (from sympy==1.12.dev0) (1.4.1)\nBuilding wheels for collected packages: sympy\n  Building editable for sympy (pyproject.toml): started\n  Building editable for sympy (pyproject.toml): finished with status 'done'\n  Created wheel for sympy: filename=sympy-1.12.dev0-0.editable-py3-none-any.whl size=30573 sha256=b390d4f2a68679963febcb1d4b60b79b856785ae6568ae2a80a880f9d9a25777\n  Stored in directory: /tmp/pip-ephem-wheel-cache-vk979e6t/wheels/9d/0d/73/23a98ba29d4ca92444987370d3578f83d1aafac1cd9abc1911\nSuccessfully built sympy\nInstalling collected packages: sympy\n  Attempting uninstall: sympy\n    Found existing installation: sympy 1.12.dev0\n    Uninstalling sympy-1.12.dev0:\n      Successfully uninstalled sympy-1.12.dev0\nSuccessfully installed sympy-1.12.dev0\n============================= test session starts ==============================\nplatform linux -- Python 3.9.25, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python\ncachedir: .pytest_cache\narchitecture: 64-bit\ncache:        yes\nground types: python \n\nrootdir: /workspace\nconfigfile: pytest.ini\ncollecting ... collected 3 items\n\nsympy/combinatorics/tests/test_homomorphisms.py::test_homomorphism FAILED [ 33%]\nsympy/combinatorics/tests/test_homomorphisms.py::test_isomorphisms PASSED [ 66%]\nsympy/combinatorics/tests/test_homomorphisms.py::test_check_homomorphism PASSED [100%]\n\n=================================== FAILURES ===================================\n______________________________ test_homomorphism _______________________________\nsympy/combinatorics/tests/test_homomorphisms.py:61: in test_homomorphism\n    T = homomorphism(D3, D3, D3.generators, D3.generators)\nsympy/combinatorics/homomorphisms.py:307: in homomorphism\n    raise ValueError(\"The given images do not define a homomorphism\")\nE   ValueError: The given images do not define a homomorphism\n                                DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/combinatorics/tests/test_homomorphisms.py::test_homomorphism - V...\n========================= 1 failed, 2 passed in 0.41s ==========================\n",
+        "image": "swe-env:sympy-sympy-24443",
+        "docker_command": [
+          "docker",
+          "run",
+          "--rm",
+          "-v",
+          "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/sympy__sympy-24443/env-check-work/check-a:/workspace",
+          "-w",
+          "/workspace",
+          "swe-env:sympy-sympy-24443",
+          "bash",
+          "-lc",
+          "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest sympy/combinatorics/tests/test_homomorphisms.py -v -W ignore::DeprecationWarning --tb=short 2>&1"
+        ],
+        "container_command": "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest sympy/combinatorics/tests/test_homomorphisms.py -v -W ignore::DeprecationWarning --tb=short 2>&1",
+        "exit_code": 1,
+        "framework": "pytest"
+      },
+      "expectations": {
+        "fail_to_pass_expectation_met": false,
+        "pass_to_pass_expectation_met": true,
+        "overall": false
+      }
+    },
+    "test_patch_plus_gold_patch": {
+      "patches_applied": {
+        "test_patch": true,
+        "gold_patch": true
+      },
+      "test_file_check": {
+        "test_file_expected": true,
+        "expected_test_file": "sympy/combinatorics/tests/test_homomorphisms.py",
+        "test_file_created": true,
+        "test_file_size": 3745
+      },
+      "test_results": {
+        "success": true,
+        "fail_to_pass_results": {
+          "test_homomorphism": "PASSED"
+        },
+        "pass_to_pass_results": {
+          "test_isomorphisms": "PASSED"
+        },
+        "total_tests": 3,
+        "passed_tests": 3,
+        "failed_tests": 0,
+        "output": "Obtaining file:///workspace\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nRequirement already satisfied: mpmath>=0.19 in /usr/local/lib/python3.9/site-packages (from sympy==1.12.dev0) (1.4.1)\nBuilding wheels for collected packages: sympy\n  Building editable for sympy (pyproject.toml): started\n  Building editable for sympy (pyproject.toml): finished with status 'done'\n  Created wheel for sympy: filename=sympy-1.12.dev0-0.editable-py3-none-any.whl size=30573 sha256=8addc61a7327ca916d6740165ea26fa57b71a333deaef52e70a81e3cfc6bfc6d\n  Stored in directory: /tmp/pip-ephem-wheel-cache-js_r83k4/wheels/9d/0d/73/23a98ba29d4ca92444987370d3578f83d1aafac1cd9abc1911\nSuccessfully built sympy\nInstalling collected packages: sympy\n  Attempting uninstall: sympy\n    Found existing installation: sympy 1.12.dev0\n    Uninstalling sympy-1.12.dev0:\n      Successfully uninstalled sympy-1.12.dev0\nSuccessfully installed sympy-1.12.dev0\n============================= test session starts ==============================\nplatform linux -- Python 3.9.25, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python\ncachedir: .pytest_cache\narchitecture: 64-bit\ncache:        yes\nground types: python \n\nrootdir: /workspace\nconfigfile: pytest.ini\ncollecting ... collected 3 items\n\nsympy/combinatorics/tests/test_homomorphisms.py::test_homomorphism PASSED [ 33%]\nsympy/combinatorics/tests/test_homomorphisms.py::test_isomorphisms PASSED [ 66%]\nsympy/combinatorics/tests/test_homomorphisms.py::test_check_homomorphism PASSED [100%]\n\n============================== 3 passed in 0.39s ===============================\n",
+        "image": "swe-env:sympy-sympy-24443",
+        "docker_command": [
+          "docker",
+          "run",
+          "--rm",
+          "-v",
+          "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/sympy__sympy-24443/env-check-work/check-b:/workspace",
+          "-w",
+          "/workspace",
+          "swe-env:sympy-sympy-24443",
+          "bash",
+          "-lc",
+          "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest sympy/combinatorics/tests/test_homomorphisms.py -v -W ignore::DeprecationWarning --tb=short 2>&1"
+        ],
+        "container_command": "python -m pip install --disable-pip-version-check --no-build-isolation -e . 2>/dev/null || (cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; true) && export PYTHONPATH=/workspace/lib:/workspace && python -m pytest sympy/combinatorics/tests/test_homomorphisms.py -v -W ignore::DeprecationWarning --tb=short 2>&1",
+        "exit_code": 0,
+        "framework": "pytest"
+      },
+      "expectations": {
+        "fail_to_pass_expectation_met": true,
+        "pass_to_pass_expectation_met": true,
+        "overall": true
+      }
+    }
+  },
+  "overall": false,
+  "env_status": "fail"
+}

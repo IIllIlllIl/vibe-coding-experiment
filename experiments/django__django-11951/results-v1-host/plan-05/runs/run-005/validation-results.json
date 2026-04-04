@@ -1,0 +1,73 @@
+{
+  "validation_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results-v1-host/plan-05/runs/run-005/validation",
+  "validation_image": "swe-env:django-django-11951",
+  "patches_applied": {
+    "test_patch": true,
+    "claude_patch": true
+  },
+  "diff_exclusions": {
+    "excluded_paths": [],
+    "reason": "overlaps with test_patch"
+  },
+  "test_file_check": {
+    "test_file_expected": true,
+    "expected_test_file": "tests/bulk_create/tests.py",
+    "test_file_created": true,
+    "test_file_size": 13934
+  },
+  "test_results": {
+    "success": true,
+    "fail_to_pass_results": {
+      "test_explicit_batch_size_respects_max_batch_size (bulk_create.tests.BulkCreateTests)": "PASSED"
+    },
+    "pass_to_pass_results": {
+      "test_batch_same_vals (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_bulk_insert_expressions (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_bulk_insert_nullable_fields (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_efficiency (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_empty_model (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_explicit_batch_size (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_explicit_batch_size_efficiency (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_ignore_conflicts_ignore (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_large_batch (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_large_batch_efficiency (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_large_batch_mixed (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_large_batch_mixed_efficiency (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_large_single_field_batch (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_long_and_short_text (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_long_non_ascii_text (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_multi_table_inheritance_unsupported (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_non_auto_increment_pk (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_non_auto_increment_pk_efficiency (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_proxy_inheritance_supported (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_set_state_with_pk_specified (bulk_create.tests.BulkCreateTests)": "PASSED",
+      "test_simple (bulk_create.tests.BulkCreateTests)": "PASSED"
+    },
+    "total_tests": 22,
+    "passed_tests": 22,
+    "failed_tests": 0,
+    "output": "Obtaining file:///workspace\n  Installing build dependencies: started\n  Installing build dependencies: finished with status 'done'\n  Checking if build backend supports build_editable: started\n  Checking if build backend supports build_editable: finished with status 'done'\n  Getting requirements to build editable: started\n  Getting requirements to build editable: finished with status 'done'\n  Preparing editable metadata (pyproject.toml): started\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\nRequirement already satisfied: pytz in /usr/local/lib/python3.9/site-packages (from Django==3.1) (2026.1.post1)\nRequirement already satisfied: sqlparse in /usr/local/lib/python3.9/site-packages (from Django==3.1) (0.5.5)\nRequirement already satisfied: asgiref in /usr/local/lib/python3.9/site-packages (from Django==3.1) (3.11.1)\nRequirement already satisfied: typing_extensions>=4 in /usr/local/lib/python3.9/site-packages (from asgiref->Django==3.1) (4.15.0)\nBuilding wheels for collected packages: Django\n  Building editable for Django (pyproject.toml): started\n  Building editable for Django (pyproject.toml): finished with status 'done'\n  Created wheel for Django: filename=django-3.1-0.editable-py3-none-any.whl size=25185 sha256=240fbbcd01dfb4557d347a38b8d77b002f244c2ecb189c03a3d6b850eb8917f0\n  Stored in directory: /tmp/pip-ephem-wheel-cache-_82lw4un/wheels/9d/0d/73/23a98ba29d4ca92444987370d3578f83d1aafac1cd9abc1911\nSuccessfully built Django\nInstalling collected packages: Django\n  Attempting uninstall: Django\n    Found existing installation: Django 3.1\n    Uninstalling Django-3.1:\n      Successfully uninstalled Django-3.1\nSuccessfully installed Django-3.1\nTesting against Django installed in '/workspace/django' with up to 2 processes\nImporting application bulk_create\nSkipping setup of unused database(s): other.\nOperations to perform:\n  Synchronize unmigrated apps: auth, bulk_create, contenttypes, messages, sessions, staticfiles\n  Apply all migrations: admin, sites\nSynchronizing apps without migrations:\n  Creating tables...\n    Creating table django_content_type\n    Creating table auth_permission\n    Creating table auth_group\n    Creating table auth_user\n    Creating table django_session\n    Creating table bulk_create_country\n    Creating table bulk_create_proxymulticountry\n    Creating table bulk_create_restaurant\n    Creating table bulk_create_pizzeria\n    Creating table bulk_create_state\n    Creating table bulk_create_twofields\n    Creating table bulk_create_nofields\n    Creating table bulk_create_nullablefields\n    Running deferred SQL...\nRunning migrations:\n  Applying admin.0001_initial... OK\n  Applying admin.0002_logentry_remove_auto_add... OK\n  Applying admin.0003_logentry_add_action_flag_choices... OK\n  Applying sites.0001_initial... OK\n  Applying sites.0002_alter_domain_unique... OK\nSystem check identified no issues (0 silenced).\nWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\nCreating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...\ntest_batch_same_vals (bulk_create.tests.BulkCreateTests) ... ok\ntest_bulk_insert_expressions (bulk_create.tests.BulkCreateTests) ... ok\ntest_bulk_insert_nullable_fields (bulk_create.tests.BulkCreateTests) ... ok\ntest_efficiency (bulk_create.tests.BulkCreateTests) ... ok\ntest_empty_model (bulk_create.tests.BulkCreateTests) ... ok\ntest_explicit_batch_size (bulk_create.tests.BulkCreateTests) ... ok\ntest_explicit_batch_size_efficiency (bulk_create.tests.BulkCreateTests) ... ok\ntest_explicit_batch_size_respects_max_batch_size (bulk_create.tests.BulkCreateTests) ... ok\ntest_ignore_conflicts_ignore (bulk_create.tests.BulkCreateTests) ... ok\ntest_ignore_conflicts_value_error (bulk_create.tests.BulkCreateTests) ... skipped 'Database has feature(s) supports_ignore_conflicts'\ntest_large_batch (bulk_create.tests.BulkCreateTests) ... ok\ntest_large_batch_efficiency (bulk_create.tests.BulkCreateTests) ... ok\ntest_large_batch_mixed (bulk_create.tests.BulkCreateTests)\nTest inserting a large batch with objects having primary key set ... ok\ntest_large_batch_mixed_efficiency (bulk_create.tests.BulkCreateTests)\nTest inserting a large batch with objects having primary key set ... ok\ntest_large_single_field_batch (bulk_create.tests.BulkCreateTests) ... ok\ntest_long_and_short_text (bulk_create.tests.BulkCreateTests) ... ok\ntest_long_non_ascii_text (bulk_create.tests.BulkCreateTests)\nInserting non-ASCII values with a length in the range 2001 to 4000 ... ok\ntest_multi_table_inheritance_unsupported (bulk_create.tests.BulkCreateTests) ... ok\ntest_non_auto_increment_pk (bulk_create.tests.BulkCreateTests) ... ok\ntest_non_auto_increment_pk_efficiency (bulk_create.tests.BulkCreateTests) ... ok\ntest_proxy_inheritance_supported (bulk_create.tests.BulkCreateTests) ... ok\ntest_set_pk_and_insert_single_item (bulk_create.tests.BulkCreateTests) ... skipped \"Database doesn't support feature(s): can_return_rows_from_bulk_insert\"\ntest_set_pk_and_query_efficiency (bulk_create.tests.BulkCreateTests) ... skipped \"Database doesn't support feature(s): can_return_rows_from_bulk_insert\"\ntest_set_state (bulk_create.tests.BulkCreateTests) ... skipped \"Database doesn't support feature(s): can_return_rows_from_bulk_insert\"\ntest_set_state_with_pk_specified (bulk_create.tests.BulkCreateTests) ... ok\ntest_simple (bulk_create.tests.BulkCreateTests) ... ok\ntest_zero_as_autoval (bulk_create.tests.BulkCreateTests)\nZero as id for AutoField should raise exception in MySQL, because MySQL ... skipped 'Database has feature(s) allows_auto_pk_0'\n\n----------------------------------------------------------------------\nRan 27 tests in 0.081s\n\nOK (skipped=5)\nDestroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...\n",
+    "image": "swe-env:django-django-11951",
+    "docker_command": [
+      "docker",
+      "run",
+      "--rm",
+      "-v",
+      "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results-v1-host/plan-05/runs/run-005/validation/work:/workspace",
+      "-w",
+      "/workspace",
+      "swe-env:django-django-11951",
+      "bash",
+      "-lc",
+      "python -m pip install --disable-pip-version-check -e . && python tests/runtests.py -v 2 bulk_create.tests"
+    ],
+    "container_command": "python -m pip install --disable-pip-version-check -e . && python tests/runtests.py -v 2 bulk_create.tests",
+    "exit_code": 0,
+    "framework": "django"
+  },
+  "correctness": {
+    "functional": 1.0,
+    "regression": 1.0,
+    "overall": 1.0
+  }
+}

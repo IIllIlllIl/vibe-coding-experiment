@@ -14,12 +14,12 @@ index 335e10996..8b537a91f 100644
  @hookimpl(hookwrapper=True)
  def pytest_runtest_makereport(item: Item, call: CallInfo[None]):
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..b43602d5c 100644
+index 8fceb37aa..0aedcd7da 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
-@@ -544,6 +544,20 @@ class TestXFail:
-         result.stdout.fnmatch_lines(["*1 failed*" if strict else "*1 xpassed*"])
+@@ -545,6 +545,21 @@ class TestXFail:
          assert result.ret == (1 if strict else 0)
+ 
  
 +    def test_dynamic_xfail_set_during_test(self, testdir):
 +        """Test that xfail marker added dynamically during test execution works (#7490)."""
@@ -35,6 +35,7 @@ index 8fceb37aa..b43602d5c 100644
 +        result = testdir.runpytest(p, "-rxX")
 +        result.stdout.fnmatch_lines(["*1 xfailed*"])
 +
- 
++
  class TestXFailwithSetupTeardown:
      def test_failing_setup_issue9(self, testdir):
+         testdir.makepyfile(

@@ -1,2 +1,0 @@
-src/_pytest/skipping.py
-testing/test_skipping.py

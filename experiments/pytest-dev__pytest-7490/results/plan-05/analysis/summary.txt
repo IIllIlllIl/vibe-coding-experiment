@@ -1,6 +1,6 @@
 Experiment: pytest-dev__pytest-7490
 Runs directory: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-05/runs
-Generated: 2026-04-01T18:19:16.323377+00:00
+Generated: 2026-04-03T12:46:17.231197+00:00
 Total runs: 5
 Successful: 0
 Failed: 5
@@ -15,34 +15,34 @@ Files Changed Statistics:
   Range: 0
 
 Diff Size Statistics (bytes):
-  Min: 1444
-  Max: 1621
-  Avg: 1523.20
-  Range: 177
+  Min: 1387
+  Max: 1577
+  Avg: 1517.20
+  Range: 190
 
 Duration Statistics (seconds):
-  Min: 4.80
-  Max: 5.93
-  Avg: 5.11
-  Range: 1.13
+  Min: 132.51
+  Max: 254.94
+  Avg: 169.34
+  Range: 122.43
 
 ======================================================================
 RUN DETAILS
 ======================================================================
 
-Run 001: status=partial, duration=4s, FAIL_TO_PASS=0/2 (0%), PASS_TO_PASS=78/78 (100%), input_tokens=27391, output_tokens=1946, cache_read_input_tokens=361856, tokens=29337
-Run 002: status=partial, duration=4s, FAIL_TO_PASS=0/2 (0%), PASS_TO_PASS=78/78 (100%), input_tokens=22049, output_tokens=3666, cache_read_input_tokens=1196224, tokens=25715
-Run 003: status=partial, duration=4s, FAIL_TO_PASS=0/2 (0%), PASS_TO_PASS=78/78 (100%), input_tokens=13192, output_tokens=2011, cache_read_input_tokens=429632, tokens=15203
-Run 004: status=partial, duration=5s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=15528, output_tokens=1999, cache_read_input_tokens=499648, tokens=17527
-Run 005: status=partial, duration=4s, FAIL_TO_PASS=0/2 (0%), PASS_TO_PASS=78/78 (100%), input_tokens=24664, output_tokens=1785, cache_read_input_tokens=425536, tokens=26449
+Run 001: status=partial, duration=158.0s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=10437, output_tokens=2929, cache_read_input_tokens=722048, tokens=13366
+Run 002: status=partial, duration=159.7s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=24236, output_tokens=2757, cache_read_input_tokens=718272, tokens=26993
+Run 003: status=partial, duration=132.5s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=10631, output_tokens=2364, cache_read_input_tokens=690560, tokens=12995
+Run 004: status=partial, duration=141.6s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=7872, output_tokens=1802, cache_read_input_tokens=492032, tokens=9674
+Run 005: status=partial, duration=254.9s, FAIL_TO_PASS=2/2 (100%), PASS_TO_PASS=77/78 (98%), input_tokens=13064, output_tokens=4027, cache_read_input_tokens=1305792, tokens=17091
 
 ======================================================================
 VALIDATION SUMMARY
 ======================================================================
 
 Total validated runs: 5
-Average functional score: 20.00%
-Average regression score: 99.74%
-Average overall score: 59.87%
+Average functional score: 100.00%
+Average regression score: 98.72%
+Average overall score: 99.36%
 Perfect runs (100% overall): 0
 Runs with test file created: 5

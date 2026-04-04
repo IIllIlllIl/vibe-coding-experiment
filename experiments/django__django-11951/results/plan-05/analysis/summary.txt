@@ -1,6 +1,6 @@
 Experiment: django__django-11951
 Runs directory: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/results/plan-05/runs
-Generated: 2026-04-01T15:58:01.816584+00:00
+Generated: 2026-04-03T12:46:16.094346+00:00
 Total runs: 5
 Successful: 5
 Failed: 0
@@ -21,20 +21,20 @@ Diff Size Statistics (bytes):
   Range: 0
 
 Duration Statistics (seconds):
-  Min: 15.60
-  Max: 18.91
-  Avg: 16.74
-  Range: 3.31
+  Min: 46.50
+  Max: 67.83
+  Avg: 61.84
+  Range: 21.33
 
 ======================================================================
 RUN DETAILS
 ======================================================================
 
-Run 001: status=success, duration=18s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=20382, output_tokens=781, cache_read_input_tokens=192768, tokens=21163
-Run 002: status=success, duration=15s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=5850, output_tokens=980, cache_read_input_tokens=326656, tokens=6830
-Run 003: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=6441, output_tokens=1237, cache_read_input_tokens=472960, tokens=7678
-Run 004: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=20879, output_tokens=1138, cache_read_input_tokens=338240, tokens=22017
-Run 005: status=success, duration=16s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=20244, output_tokens=872, cache_read_input_tokens=240832, tokens=21116
+Run 001: status=success, duration=63.5s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=20667, output_tokens=875, cache_read_input_tokens=288256, tokens=21542
+Run 002: status=success, duration=67.0s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=23655, output_tokens=895, cache_read_input_tokens=284032, tokens=24550
+Run 003: status=success, duration=67.8s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=5557, output_tokens=691, cache_read_input_tokens=230656, tokens=6248
+Run 004: status=success, duration=46.5s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=18302, output_tokens=818, cache_read_input_tokens=217472, tokens=19120
+Run 005: status=success, duration=64.3s, FAIL_TO_PASS=1/1 (100%), PASS_TO_PASS=21/21 (100%), input_tokens=5565, output_tokens=754, cache_read_input_tokens=253504, tokens=6319
 
 ======================================================================
 VALIDATION SUMMARY

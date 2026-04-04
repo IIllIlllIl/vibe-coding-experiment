@@ -12,25 +12,26 @@ index 335e10996..e2c5e8045 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..7c58f0d4d 100644
+index 8fceb37aa..733743fd7 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
-@@ -425,6 +425,19 @@ class TestXFail:
+@@ -425,6 +425,20 @@ class TestXFail:
          result = testdir.runpytest(p)
          result.stdout.fnmatch_lines(["*1 xfailed*"])
  
 +    def test_dynamic_xfail_set_during_test(self, testdir):
-+        """Test that xfail marker added dynamically during test execution is honored (#7490)."""
++        """Dynamically adding xfail marker via request.node.add_marker during
++        test execution should cause the test to be reported as XFAIL (#7490)."""
 +        p = testdir.makepyfile(
 +            """
 +            import pytest
 +            def test_this(request):
-+                request.node.add_marker(pytest.mark.xfail(reason=" dynamically added"))
++                request.node.add_marker(pytest.mark.xfail)
 +                assert 0
 +        """
 +        )
-+        result = testdir.runpytest(p, "-rx")
-+        result.stdout.fnmatch_lines(["*XFAIL*test_this*", "*1 xfailed*"])
++        result = testdir.runpytest(p)
++        result.stdout.fnmatch_lines(["*1 xfailed*"])
 +
      @pytest.mark.parametrize(
          "expected, actual, matchline",

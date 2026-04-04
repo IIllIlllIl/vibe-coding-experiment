@@ -13,27 +13,24 @@ index 794e0faae7..92349cd0c5 100644
          bulk_return = connections[self.db].features.can_return_rows_from_bulk_insert
          for item in [objs[i:i + batch_size] for i in range(0, len(objs), batch_size)]:
 diff --git a/tests/bulk_create/tests.py b/tests/bulk_create/tests.py
-index 47aa7afcdc..988b4c6579 100644
+index 47aa7afcdc..1380bb7d05 100644
 --- a/tests/bulk_create/tests.py
 +++ b/tests/bulk_create/tests.py
 @@ -1,4 +1,5 @@
  from operator import attrgetter
-+from unittest.mock import patch
++from unittest import mock
  
  from django.db import IntegrityError, NotSupportedError, connection
  from django.db.models import FileField, Value
-@@ -305,3 +306,14 @@ class BulkCreateTests(TestCase):
+@@ -305,3 +306,11 @@ class BulkCreateTests(TestCase):
          # Without ignore_conflicts=True, there's a problem.
          with self.assertRaises(IntegrityError):
              TwoFields.objects.bulk_create(conflicting_objects)
 +
-+    @skipUnlessDBFeature('has_bulk_insert')
-+    def test_batch_size_respects_max_batch_size(self):
-+        """batch_size is capped by the database's max_batch_size."""
++    def test_bulk_create_explicit_batch_size_exceeds_max(self):
++        """batch_size is capped to the database's max_batch_size."""
 +        objs = [Country(name="Country %d" % i, iso_two_letter="C%d" % i) for i in range(10)]
-+        with patch(
-+            'django.db.backends.base.operations.BaseDatabaseOperations.bulk_batch_size',
-+            return_value=2,
-+        ):
++        with mock.patch('django.db.backends.base.operations.BaseDatabaseOperations.bulk_batch_size',
++                        return_value=2):
 +            with self.assertNumQueries(5):
 +                Country.objects.bulk_create(objs, batch_size=100)

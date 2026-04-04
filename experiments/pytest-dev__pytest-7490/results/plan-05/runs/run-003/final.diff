@@ -12,7 +12,7 @@ index 335e10996..e2c5e8045 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..da4f2736c 100644
+index 8fceb37aa..90d8a3a75 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
 @@ -425,6 +425,18 @@ class TestXFail:
@@ -24,12 +24,12 @@ index 8fceb37aa..da4f2736c 100644
 +            """
 +            import pytest
 +            def test_this(request):
-+                request.node.add_marker(pytest.mark.xfail(reason="dynamic xfail"))
++                request.node.add_marker(pytest.mark.xfail)
 +                assert 0
 +        """
 +        )
-+        result = testdir.runpytest(p, "-rxX")
-+        result.stdout.fnmatch_lines(["*XFAIL*test_this*", "*dynamic xfail*"])
++        result = testdir.runpytest(p)
++        result.stdout.fnmatch_lines(["*1 xfailed*"])
 +
      @pytest.mark.parametrize(
          "expected, actual, matchline",

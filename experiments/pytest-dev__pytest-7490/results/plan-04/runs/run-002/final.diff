@@ -12,7 +12,7 @@ index 335e10996..9e6c55c89 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..c495cd339 100644
+index 8fceb37aa..1affc6da8 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
 @@ -545,6 +545,34 @@ class TestXFail:
@@ -20,7 +20,7 @@ index 8fceb37aa..c495cd339 100644
  
  
 +    def test_dynamic_xfail_during_test(self, testdir):
-+        """Test that xfail marker added during test execution is honored (#7490)."""
++        """Test that dynamically adding xfail marker during test execution works (issue #7490)."""
 +        p = testdir.makepyfile(
 +            """
 +            import pytest
@@ -34,7 +34,7 @@ index 8fceb37aa..c495cd339 100644
 +        result.stdout.fnmatch_lines(["*1 xfailed*"])
 +
 +    def test_dynamic_xfail_during_test_passing(self, testdir):
-+        """Test that dynamic xfail marker on a passing test results in xpass (#7490)."""
++        """Test that dynamically adding xfail marker during test that passes results in xpass."""
 +        p = testdir.makepyfile(
 +            """
 +            import pytest

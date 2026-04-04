@@ -2,7 +2,7 @@
   "experiment": "pytest-dev__pytest-7490",
   "runs_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-04/runs",
   "analysis_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-04/analysis",
-  "generated_at": "2026-04-01T18:07:32.250860+00:00",
+  "generated_at": "2026-04-03T12:46:17.007470+00:00",
   "total_runs": 5,
   "successful_runs": 0,
   "failed_runs": 5,
@@ -14,28 +14,28 @@
       "run_id": 1,
       "status": "partial",
       "exit_code": 0,
-      "start_time": "2026-04-01T17:58:59.201529+00:00",
-      "end_time": "2026-04-01T17:59:04.399369+00:00",
+      "start_time": "2026-04-02T19:31:06.648508+00:00",
+      "end_time": "2026-04-02T19:37:15.165508+00:00",
       "changed_files_count": 2,
-      "diff_size": 1853,
+      "diff_size": 1896,
       "error": ""
     },
     {
       "run_id": 2,
       "status": "partial",
       "exit_code": 0,
-      "start_time": "2026-04-01T18:01:10.309687+00:00",
-      "end_time": "2026-04-01T18:01:15.588740+00:00",
+      "start_time": "2026-04-02T19:37:23.629451+00:00",
+      "end_time": "2026-04-02T19:43:11.043451+00:00",
       "changed_files_count": 2,
-      "diff_size": 2037,
+      "diff_size": 2060,
       "error": ""
     },
     {
       "run_id": 3,
       "status": "partial",
       "exit_code": 0,
-      "start_time": "2026-04-01T18:02:58.893098+00:00",
-      "end_time": "2026-04-01T18:03:04.064625+00:00",
+      "start_time": "2026-04-02T19:43:24.274710+00:00",
+      "end_time": "2026-04-02T19:46:12.416710+00:00",
       "changed_files_count": 2,
       "diff_size": 1858,
       "error": ""
@@ -44,54 +44,54 @@
       "run_id": 4,
       "status": "partial",
       "exit_code": 0,
-      "start_time": "2026-04-01T18:04:55.000118+00:00",
-      "end_time": "2026-04-01T18:05:00.203576+00:00",
-      "changed_files_count": 2,
-      "diff_size": 2033,
+      "start_time": "2026-04-02T19:46:22.124914+00:00",
+      "end_time": "2026-04-02T19:51:43.213914+00:00",
+      "changed_files_count": 3,
+      "diff_size": 2129,
       "error": ""
     },
     {
       "run_id": 5,
       "status": "partial",
       "exit_code": 0,
-      "start_time": "2026-04-01T18:07:25.007030+00:00",
-      "end_time": "2026-04-01T18:07:30.229644+00:00",
+      "start_time": "2026-04-02T19:51:53.539203+00:00",
+      "end_time": "2026-04-02T19:54:39.226203+00:00",
       "changed_files_count": 2,
-      "diff_size": 1858,
+      "diff_size": 1921,
       "error": ""
     }
   ],
   "statistics": {
     "files_changed": {
       "min": 2,
-      "max": 2,
-      "avg": 2.0,
-      "range": 0
+      "max": 3,
+      "avg": 2.2,
+      "range": 1
     },
     "diff_size_bytes": {
-      "min": 1853,
-      "max": 2037,
-      "avg": 1927.8,
-      "range": 184
+      "min": 1858,
+      "max": 2129,
+      "avg": 1972.8,
+      "range": 271
     }
   },
   "durations_seconds": {
-    "min": 5.171527,
-    "max": 5.279053,
-    "avg": 5.2148984,
-    "range": 0.10752600000000001
+    "min": 165.687,
+    "max": 368.517,
+    "avg": 274.1698,
+    "range": 202.82999999999998
   },
   "tokens": {
-    "average_input_tokens": 19493.2,
-    "average_output_tokens": 2202.8,
-    "average_cache_read_input_tokens": 468339.2,
-    "average_total_tokens": 21696.0
+    "average_input_tokens": 21003.6,
+    "average_output_tokens": 3119.0,
+    "average_cache_read_input_tokens": 955852.8,
+    "average_total_tokens": 24122.6
   },
   "validation": {
     "total_validated": 5,
-    "average_functional_score": 0.6,
-    "average_regression_score": 0.9923076923076923,
-    "average_overall_score": 0.7961538461538462,
+    "average_functional_score": 1.0,
+    "average_regression_score": 0.9871794871794872,
+    "average_overall_score": 0.9935897435897436,
     "perfect_runs": 0,
     "test_file_created_count": 5,
     "per_run": [
@@ -111,9 +111,9 @@
       },
       {
         "run_id": 3,
-        "functional": 0.0,
-        "regression": 1.0,
-        "overall": 0.5,
+        "functional": 1.0,
+        "regression": 0.9871794871794872,
+        "overall": 0.9935897435897436,
         "test_file_created": true
       },
       {
@@ -125,9 +125,9 @@
       },
       {
         "run_id": 5,
-        "functional": 0.0,
-        "regression": 1.0,
-        "overall": 0.5,
+        "functional": 1.0,
+        "regression": 0.9871794871794872,
+        "overall": 0.9935897435897436,
         "test_file_created": true
       }
     ]

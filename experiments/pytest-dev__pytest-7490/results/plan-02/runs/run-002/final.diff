@@ -12,28 +12,37 @@ index 335e10996..e69b0a6ab 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..44ab43c5d 100644
+index 8fceb37aa..b84959f12 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
-@@ -397,6 +397,21 @@ class TestXFail:
-         result = testdir.runpytest(p, "-rxX")
-         result.stdout.fnmatch_lines(["*XFAIL*test_this*", "*XPASS*test_that*"])
+@@ -382,7 +382,7 @@ class TestXFail:
+         """
+         )
  
-+    def test_dynamic_xfail_set_in_body(self, testdir):
-+        """Dynamically adding xfail marker in test body should cause failure to be reported as XFAIL."""
+-    def xtest_dynamic_xfail_set_during_setup(self, testdir):
++    def test_dynamic_xfail_set_during_setup(self, testdir):
+         p = testdir.makepyfile(
+             """
+             import pytest
+@@ -425,6 +425,21 @@ class TestXFail:
+         result = testdir.runpytest(p)
+         result.stdout.fnmatch_lines(["*1 xfailed*"])
+ 
++    def test_dynamic_xfail_no_run_set_during_test(self, testdir):
 +        p = testdir.makepyfile(
 +            """
 +            import pytest
-+            def test_xfail_in_body(request):
-+                mark = pytest.mark.xfail(reason="dynamically added xfail")
-+                request.node.add_marker(mark)
++            def test_this(request):
++                request.node.add_marker(pytest.mark.xfail(reason="xfail"))
 +                assert 0
++            def test_that(request):
++                request.node.add_marker(pytest.mark.xfail(reason="xfail"))
++                assert 1
 +        """
 +        )
 +        result = testdir.runpytest(p, "-rxX")
-+        result.stdout.fnmatch_lines(["*XFAIL*test_xfail_in_body*", "*dynamically added xfail*"])
-+        result.assert_outcomes(xfailed=1)
++        result.stdout.fnmatch_lines(["*XFAIL*test_this*", "*XPASS*test_that*"])
 +
-     def test_dynamic_xfail_no_run(self, testdir):
-         p = testdir.makepyfile(
-             """
+     @pytest.mark.parametrize(
+         "expected, actual, matchline",
+         [

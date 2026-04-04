@@ -12,50 +12,29 @@ index 335e10996..e69b0a6ab 100644
      if unexpectedsuccess_key in item._store and rep.when == "call":
          reason = item._store[unexpectedsuccess_key]
 diff --git a/testing/test_skipping.py b/testing/test_skipping.py
-index 8fceb37aa..474756af9 100644
+index 8fceb37aa..77121af2c 100644
 --- a/testing/test_skipping.py
 +++ b/testing/test_skipping.py
-@@ -425,6 +425,43 @@ class TestXFail:
-         result = testdir.runpytest(p)
-         result.stdout.fnmatch_lines(["*1 xfailed*"])
+@@ -382,6 +382,22 @@ class TestXFail:
+         """
+         )
  
-+    def test_dynamic_xfail_set_in_test_body(self, testdir):
-+        """Dynamically adding xfail marker in test body should still produce XFAIL (issue #7490)."""
++    def test_dynamic_xfail_set_during_test(self, testdir):
++        """Dynamically adding xfail marker in test body should work (#7490)."""
 +        p = testdir.makepyfile(
 +            """
 +            import pytest
-+            def test_xfail_in_body(request):
-+                request.node.add_marker(pytest.mark.xfail(reason="dynamically added"))
++            def test_xfail_test(request):
++                mark = pytest.mark.xfail(reason="xfail")
++                request.node.add_marker(mark)
 +                assert 0
 +        """
 +        )
-+        result = testdir.runpytest(p, "-rx")
-+        result.stdout.fnmatch_lines(["*XFAIL*test_xfail_in_body*", "*dynamically added*"])
++        result = testdir.runpytest(p, "-rsx")
++        result.stdout.fnmatch_lines(["*XFAIL*test_xfail_test*", "*xfail*"])
++        result = testdir.runpytest(p, "--runxfail")
++        result.stdout.fnmatch_lines(["*1 failed*"])
 +
-+    def test_dynamic_xfail_set_in_test_body_passing(self, testdir):
-+        """Dynamically added xfail marker with strict=False should XPASS when test passes."""
-+        p = testdir.makepyfile(
-+            """
-+            import pytest
-+            def test_xfail_in_body_pass(request):
-+                request.node.add_marker(pytest.mark.xfail(reason="dynamically added"))
-+        """
-+        )
-+        result = testdir.runpytest(p, "-rxX")
-+        result.stdout.fnmatch_lines(["*XPASS*test_xfail_in_body_pass*"])
-+
-+    def test_dynamic_xfail_set_in_test_body_strict(self, testdir):
-+        """Dynamically added xfail marker with strict=True should FAIL when test passes."""
-+        p = testdir.makepyfile(
-+            """
-+            import pytest
-+            def test_xfail_in_body_strict(request):
-+                request.node.add_marker(pytest.mark.xfail(reason="dynamically added", strict=True))
-+        """
-+        )
-+        result = testdir.runpytest(p, "-rxX")
-+        result.stdout.fnmatch_lines(["*XPASS(strict)*", "*1 failed*"])
-+
-     @pytest.mark.parametrize(
-         "expected, actual, matchline",
-         [
+     def xtest_dynamic_xfail_set_during_setup(self, testdir):
+         p = testdir.makepyfile(
+             """

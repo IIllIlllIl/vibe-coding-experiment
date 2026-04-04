@@ -13,31 +13,25 @@ index 794e0faae7..92349cd0c5 100644
          bulk_return = connections[self.db].features.can_return_rows_from_bulk_insert
          for item in [objs[i:i + batch_size] for i in range(0, len(objs), batch_size)]:
 diff --git a/tests/bulk_create/tests.py b/tests/bulk_create/tests.py
-index 47aa7afcdc..064d338e6d 100644
+index 47aa7afcdc..c10633461d 100644
 --- a/tests/bulk_create/tests.py
 +++ b/tests/bulk_create/tests.py
-@@ -1,4 +1,5 @@
- from operator import attrgetter
-+from unittest import mock
- 
- from django.db import IntegrityError, NotSupportedError, connection
- from django.db.models import FileField, Value
-@@ -214,6 +215,18 @@ class BulkCreateTests(TestCase):
-         with self.assertNumQueries(1):
-             TwoFields.objects.bulk_create(objs, len(objs))
+@@ -140,6 +140,18 @@ class BulkCreateTests(TestCase):
+             101)
+         self.assertEqual(TwoFields.objects.filter(f2__gte=901).count(), 101)
  
 +    @skipUnlessDBFeature('has_bulk_insert')
 +    def test_explicit_batch_size_respects_max_batch_size(self):
-+        objs = [TwoFields(f1=i, f2=i) for i in range(0, 4)]
-+        with mock.patch(
++        # batch_size should be capped by the database's max_batch_size.
++        from unittest.mock import patch
++        objs = [TwoFields(f1=i, f2=i + 1) for i in range(10)]
++        with patch(
 +            'django.db.backends.base.operations.BaseDatabaseOperations.bulk_batch_size',
 +            return_value=2,
 +        ):
-+            # batch_size=100 should be capped to 2 by max_batch_size, resulting
-+            # in 2 queries (4 objects / 2 per batch).
-+            with self.assertNumQueries(2):
++            with self.assertNumQueries(5):
 +                TwoFields.objects.bulk_create(objs, batch_size=100)
 +
      @skipUnlessDBFeature('has_bulk_insert')
-     def test_bulk_insert_expressions(self):
-         Restaurant.objects.bulk_create([
+     def test_large_single_field_batch(self):
+         # SQLite had a problem with more than 500 UNIONed selects in single

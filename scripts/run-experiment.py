@@ -6,6 +6,7 @@ Usage: python scripts/run-experiment.py <experiment_dir> [--runs N] [--start N] 
 
 import argparse
 import json
+import os
 import re
 import shlex
 import shutil
@@ -13,7 +14,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -56,6 +57,7 @@ def build_docker_test_command(
     framework: str,
     fail_to_pass: List[str],
     pass_to_pass: List[str],
+    test_file: str = "",
 ) -> str:
     """Build the test command string to run inside the Docker container."""
     all_tests = fail_to_pass + pass_to_pass
@@ -84,11 +86,25 @@ def build_docker_test_command(
     for test in all_tests:
         parts = test.split("::")
         if parts:
-            test_files.add(parts[0])
+            # If the first part looks like a bare function name (no / and no .py),
+            # it's a bare test name — use the test_file hint instead
+            first = parts[0]
+            if "/" in first or first.endswith(".py"):
+                test_files.add(first)
+            elif test_file:
+                test_files.add(test_file)
     file_args = " ".join(shlex.quote(f) for f in sorted(test_files))
+    # Try editable install; if it fails, copy .so files from /opt/repo as fallback.
+    # PYTHONPATH must be set before pytest (not inside a subshell), so we use a
+    # single bash -c script that exports after the copy.
     return (
-        "python -m pip install --disable-pip-version-check -e . 2>/dev/null && "
-        f"python -m pytest {file_args} -v --tb=short 2>&1"
+        "python -m pip install --disable-pip-version-check "
+        "--no-build-isolation -e . 2>/dev/null || "
+        "(cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; "
+        "cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; "
+        "true) && "
+        "export PYTHONPATH=/workspace/lib:/workspace && "
+        f"python -m pytest {file_args} -v -W ignore::DeprecationWarning --tb=short 2>&1"
     )
 
 
@@ -97,10 +113,12 @@ def parse_pytest_output(output: str, fail_to_pass: List[str], pass_to_pass: List
     passed_tests = set()
     failed_tests = set()
 
+    skipped_tests = set()
+
     # pytest -v output: "test/path/test_file.py::TestClass::test_method[param] PASSED [pct%]"
     # Some parametrized IDs contain spaces (e.g. "*1 xfailed*]"), so use lazy .+? up to status word
     pytest_pattern = re.compile(
-        r'^(.+?)\s+(PASSED|FAILED|ERROR|XFAIL|XPASS)\s',
+        r'^(.+?)\s+(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED)\s',
         re.MULTILINE,
     )
     for match in pytest_pattern.finditer(output):
@@ -108,14 +126,18 @@ def parse_pytest_output(output: str, fail_to_pass: List[str], pass_to_pass: List
         status = match.group(2)
         if status == "PASSED":
             passed_tests.add(test_id)
+        elif status == "SKIPPED":
+            skipped_tests.add(test_id)
         else:
             failed_tests.add(test_id)
 
     return {
         "passed_tests": len(passed_tests),
         "failed_tests": len(failed_tests),
+        "skipped_tests": len(skipped_tests),
         "passed_set": passed_tests,
         "failed_set": failed_tests,
+        "skipped_set": skipped_tests,
     }
 
 
@@ -124,6 +146,7 @@ def match_pytest_results(
     pytest_passed: set,
     pytest_failed: set,
     label: str,
+    pytest_skipped: set = None,
 ) -> tuple:
     """Match expected test names against pytest output test IDs.
 
@@ -133,6 +156,8 @@ def match_pytest_results(
 
     Returns (results_dict, success_bool).
     """
+    if pytest_skipped is None:
+        pytest_skipped = set()
     results = {}
     success = True
 
@@ -146,6 +171,10 @@ def match_pytest_results(
             results[test] = "FAILED"
             success = False
             print(f"   ❌ {test}: FAILED (expected to {label})")
+            continue
+        if test in pytest_skipped:
+            results[test] = "SKIPPED"
+            print(f"   ⏭️  {test}: SKIPPED (expected to {label})")
             continue
 
         # Try partial match: extract function name and match
@@ -165,6 +194,14 @@ def match_pytest_results(
                 results[test] = "FAILED"
                 success = False
                 print(f"   ❌ {test}: FAILED (expected to {label}, matched {pytest_id})")
+                found = True
+                break
+        if found:
+            continue
+        for pytest_id in pytest_skipped:
+            if func_name in pytest_id or test in pytest_id:
+                results[test] = "SKIPPED"
+                print(f"   ⏭️  {test}: SKIPPED (expected to {label}, matched {pytest_id})")
                 found = True
                 break
         if found:
@@ -326,6 +363,34 @@ def parse_args():
         action="store_true",
         help="Keep temporary work/ and validation/ directories after each run (default: delete them)"
     )
+    parser.add_argument(
+        "--execution-mode",
+        choices=["host", "docker"],
+        default="host",
+        help="Run Claude Code on host or inside Docker (default: host)"
+    )
+    parser.add_argument(
+        "--claude-permission-mode",
+        default="acceptEdits",
+        help="Permission mode for Claude Code (default: acceptEdits)"
+    )
+    parser.add_argument(
+        "--docker-cpus",
+        type=str,
+        default=None,
+        help="CPU limit for Docker container (e.g., '2'). Passed to --cpus flag."
+    )
+    parser.add_argument(
+        "--docker-memory",
+        type=str,
+        default=None,
+        help="Memory limit for Docker container (e.g., '4g'). Passed to --memory flag."
+    )
+    parser.add_argument(
+        "--revalidate",
+        action="store_true",
+        help="Re-run validation for existing runs and rebuild summary (does NOT re-run Claude)"
+    )
     return parser.parse_args()
 
 
@@ -426,12 +491,71 @@ Approved plan:
     return prompt_template.format(plan_content=plan_content)
 
 
-def run_claude_code(work_dir: Path, prompt: str, dry_run: bool) -> Dict[str, Any]:
-    """Execute Claude Code with the prompt and capture output."""
+def resolve_executor_image(exp_path: Path) -> Optional[str]:
+    """Read claude-executor image tag from claude-executor-image.txt if present."""
+    image_file = exp_path / "claude-executor-image.txt"
+    if not image_file.exists():
+        return None
+    image = image_file.read_text().strip()
+    return image or None
+
+
+def derive_executor_image_from_validation(validation_image: str) -> str:
+    """Derive claude-executor tag from the validation image tag.
+
+    swe-env:django__django-11951 -> claude-executor:django__django-11951
+    """
+    suffix = validation_image.split(":", 1)[-1] if ":" in validation_image else validation_image
+    return f"claude-executor:{suffix}"
+
+
+def build_executor_image_if_needed(exp_path: Path, executor_image: str, validation_image: str) -> None:
+    """Build the claude-executor image if it doesn't exist."""
+    result = subprocess.run(
+        ["docker", "image", "inspect", executor_image],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        print(f"  Executor image exists: {executor_image}")
+        return
+
+    print(f"  Building executor image: {executor_image}")
+    build_env_script = Path(__file__).resolve().parent / "build-env.py"
+    subprocess.run(
+        [sys.executable, str(build_env_script), str(exp_path), "--with-claude"],
+        check=True,
+    )
+
+
+def run_claude_code(
+    work_dir: Path,
+    prompt: str,
+    dry_run: bool,
+    execution_mode: str = "host",
+    claude_permission_mode: str = "acceptEdits",
+    executor_image: Optional[str] = None,
+    docker_cpus: Optional[str] = None,
+    docker_memory: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Execute Claude Code with the prompt and capture output.
+
+    Args:
+        work_dir: Working directory for execution.
+        prompt: The prompt to send to Claude.
+        dry_run: If True, skip actual execution.
+        execution_mode: "host" to run Claude directly, "docker" to run inside a container.
+        claude_permission_mode: Permission mode for Claude (e.g. acceptEdits, bypassPermissions).
+        executor_image: Docker image to use when execution_mode=="docker".
+        docker_cpus: CPU limit for Docker container (e.g. "2").
+        docker_memory: Memory limit for Docker container (e.g. "4g").
+    """
     start_time = utc_now_iso()
+    claude_cmd_label = f"claude -p --permission-mode {claude_permission_mode} --output-format json"
 
     if dry_run:
-        print(f"  [DRY RUN] Would execute Claude Code in: {work_dir}")
+        print(f"  [DRY RUN] Would execute Claude Code ({execution_mode}) in: {work_dir}")
         return {
             "run_id": None,
             "start_time": start_time,
@@ -442,9 +566,26 @@ def run_claude_code(work_dir: Path, prompt: str, dry_run: bool) -> Dict[str, Any
             "error": ""
         }
 
+    if execution_mode == "docker":
+        return _run_claude_code_docker(
+            work_dir, prompt, start_time, claude_cmd_label, claude_permission_mode,
+            executor_image, docker_cpus=docker_cpus, docker_memory=docker_memory,
+        )
+
+    return _run_claude_code_host(work_dir, prompt, start_time, claude_cmd_label, claude_permission_mode)
+
+
+def _run_claude_code_host(
+    work_dir: Path,
+    prompt: str,
+    start_time: str,
+    claude_cmd_label: str,
+    claude_permission_mode: str,
+) -> Dict[str, Any]:
+    """Run Claude Code directly on the host."""
     try:
         result = subprocess.run(
-            ["claude", "-p", "--permission-mode", "acceptEdits", "--output-format", "json"],
+            ["claude", "-p", "--permission-mode", claude_permission_mode, "--output-format", "json"],
             cwd=work_dir,
             input=prompt,
             capture_output=True,
@@ -469,16 +610,18 @@ def run_claude_code(work_dir: Path, prompt: str, dry_run: bool) -> Dict[str, Any
                 "raw_stdout": stdout_text,
                 "stderr": result.stderr,
                 "exit_code": result.returncode,
-                "command": "claude -p --permission-mode acceptEdits --output-format json",
-                "cwd": str(work_dir)
+                "command": claude_cmd_label,
+                "cwd": str(work_dir),
+                "execution_mode": "host",
             })
         else:
             transcript_data = {
                 "stdout": stdout_text,
                 "stderr": result.stderr,
                 "exit_code": result.returncode,
-                "command": "claude -p --permission-mode acceptEdits --output-format json",
-                "cwd": str(work_dir)
+                "command": claude_cmd_label,
+                "cwd": str(work_dir),
+                "execution_mode": "host",
             }
 
         transcript_file.write_text(json.dumps(transcript_data, indent=2))
@@ -501,9 +644,10 @@ def run_claude_code(work_dir: Path, prompt: str, dry_run: bool) -> Dict[str, Any
             "stdout": e.stdout or "",
             "stderr": e.stderr or "",
             "exit_code": -1,
-            "command": "claude -p --permission-mode acceptEdits --output-format json",
+            "command": claude_cmd_label,
             "cwd": str(work_dir),
-            "timeout": True
+            "timeout": True,
+            "execution_mode": "host",
         }
         transcript_file.write_text(json.dumps(transcript_data, indent=2))
 
@@ -534,6 +678,209 @@ def run_claude_code(work_dir: Path, prompt: str, dry_run: bool) -> Dict[str, Any
             "status": "error",
             "error": str(e)
         }
+
+
+def _run_claude_code_docker(
+    work_dir: Path,
+    prompt: str,
+    start_time: str,
+    claude_cmd_label: str,
+    claude_permission_mode: str,
+    executor_image: Optional[str],
+    docker_cpus: Optional[str] = None,
+    docker_memory: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Run Claude Code inside a Docker container."""
+    if not executor_image:
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": utc_now_iso(),
+            "exit_code": -1,
+            "status": "error",
+            "error": "Docker execution requires --executor-image or a valid claude-executor-image.txt"
+        }
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": utc_now_iso(),
+            "exit_code": -1,
+            "status": "error",
+            "error": "ANTHROPIC_API_KEY environment variable is not set"
+        }
+
+    # Write API key to a temporary env file to avoid exposure in ps/process listing
+    env_file = None
+    try:
+        fd, env_path = tempfile.mkstemp(prefix="claude-env-")
+        os.write(fd, f"ANTHROPIC_API_KEY={api_key}\n".encode())
+        os.close(fd)
+        env_file = Path(env_path)
+        os.chmod(env_file, 0o600)
+    except Exception:
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": utc_now_iso(),
+            "exit_code": -1,
+            "status": "error",
+            "error": "Failed to create temporary env file for API key"
+        }
+
+    uid = os.getuid()
+    gid = os.getgid()
+
+    container_id = None
+
+    docker_cmd = [
+        "docker", "run",
+        "--rm",
+        "-v", f"{work_dir.resolve()}:/workspace",
+        "-w", "/workspace",
+        "--env-file", str(env_file),
+        "--user", f"{uid}:{gid}",
+        "--label", f"experiment-work={work_dir.resolve()}",
+    ]
+    if docker_cpus:
+        docker_cmd.extend(["--cpus", docker_cpus])
+    if docker_memory:
+        docker_cmd.extend(["--memory", docker_memory])
+    docker_cmd.extend([
+        "-i",
+        executor_image,
+        "claude", "-p", "--permission-mode", claude_permission_mode, "--output-format", "json",
+    ])
+
+    print(f"  Docker image: {executor_image}")
+    print(f"  Container user: {uid}:{gid}")
+
+    def _kill_orphaned_containers() -> None:
+        """Kill any containers associated with this work_dir."""
+        try:
+            ps_result = subprocess.run(
+                ["docker", "ps", "-q", "--filter", f"label=experiment-work={work_dir.resolve()}"],
+                capture_output=True, text=True, timeout=10,
+            )
+            for cid in ps_result.stdout.strip().splitlines():
+                if cid:
+                    print(f"  Killing orphaned container: {cid[:12]}")
+                    subprocess.run(["docker", "kill", cid], capture_output=True, timeout=15)
+        except Exception:
+            pass
+
+    try:
+        result = subprocess.run(
+            docker_cmd,
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=3600,
+        )
+
+        end_time = utc_now_iso()
+
+        transcript_file = work_dir.parent / "transcript.json"
+        stdout_text = result.stdout or ""
+        transcript_data = None
+
+        if stdout_text.strip():
+            try:
+                transcript_data = json.loads(stdout_text)
+            except json.JSONDecodeError:
+                transcript_data = None
+
+        if isinstance(transcript_data, dict):
+            transcript_data.update({
+                "raw_stdout": stdout_text,
+                "stderr": result.stderr,
+                "exit_code": result.returncode,
+                "command": claude_cmd_label,
+                "cwd": "/workspace",
+                "execution_mode": "docker",
+                "executor_image": executor_image,
+            })
+        else:
+            transcript_data = {
+                "stdout": stdout_text,
+                "stderr": result.stderr,
+                "exit_code": result.returncode,
+                "command": claude_cmd_label,
+                "cwd": "/workspace",
+                "execution_mode": "docker",
+                "executor_image": executor_image,
+            }
+
+        transcript_file.write_text(json.dumps(transcript_data, indent=2))
+
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": end_time,
+            "exit_code": result.returncode,
+            "status": "success" if result.returncode == 0 else "failed",
+            "transcript_file": str(transcript_file),
+            "error": result.stderr if result.returncode != 0 else ""
+        }
+
+    except subprocess.TimeoutExpired:
+        end_time = utc_now_iso()
+        print("  ⚠️  Container timed out, killing...")
+        _kill_orphaned_containers()
+
+        transcript_file = work_dir.parent / "transcript.json"
+        transcript_data = {
+            "stdout": "",
+            "stderr": "",
+            "exit_code": -1,
+            "command": claude_cmd_label,
+            "cwd": "/workspace",
+            "timeout": True,
+            "execution_mode": "docker",
+            "executor_image": executor_image,
+        }
+        transcript_file.write_text(json.dumps(transcript_data, indent=2))
+
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": end_time,
+            "exit_code": -1,
+            "status": "timeout",
+            "transcript_file": str(transcript_file),
+            "error": "Execution exceeded 1 hour timeout (Docker container killed)"
+        }
+    except KeyboardInterrupt:
+        print("  ⚠️  Interrupted, killing container...")
+        _kill_orphaned_containers()
+        raise
+    except FileNotFoundError:
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": utc_now_iso(),
+            "exit_code": -1,
+            "status": "error",
+            "error": "Docker not found. Please ensure 'docker' is installed and in PATH."
+        }
+    except Exception as e:
+        return {
+            "run_id": None,
+            "start_time": start_time,
+            "end_time": utc_now_iso(),
+            "exit_code": -1,
+            "status": "error",
+            "error": str(e)
+        }
+    finally:
+        # Always clean up the temporary env file
+        if env_file and env_file.exists():
+            try:
+                env_file.unlink()
+            except Exception:
+                pass
 
 
 def classify_run(exit_code: int, diff_size: int, validation: Optional[Dict[str, Any]] = None) -> str:
@@ -573,6 +920,7 @@ def collect_results(run_path: Path, work_dir: Path) -> Dict[str, Any]:
     results: Dict[str, Any] = {}
 
     diff_file = run_path / "final.diff"
+    changed_files_file = run_path / "changed-files.txt"
     try:
         # Stage all changes (including untracked files) so they appear in the diff
         subprocess.run(
@@ -589,6 +937,20 @@ def collect_results(run_path: Path, work_dir: Path) -> Dict[str, Any]:
                 stderr=subprocess.DEVNULL,
                 check=False
             )
+
+        # Capture changed file list BEFORE unstaging
+        name_result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=work_dir,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        changed_files = [f for f in name_result.stdout.strip().split("\n") if f]
+        changed_files_file.write_text("\n".join(changed_files))
+        results["changed_files"] = changed_files
+        results["changed_files_count"] = len(changed_files)
+
         # Unstage to restore working tree state
         subprocess.run(
             ["git", "reset", "HEAD"],
@@ -601,23 +963,7 @@ def collect_results(run_path: Path, work_dir: Path) -> Dict[str, Any]:
         results["diff_size"] = diff_size
     except Exception as e:
         results["diff_error"] = str(e)
-
-    changed_files_file = run_path / "changed-files.txt"
-    try:
-        result = subprocess.run(
-            ["git", "diff", "--cached", "--name-only"],
-            cwd=work_dir,
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        changed_files = [f for f in result.stdout.strip().split("\n") if f]
-        changed_files_file.write_text("\n".join(changed_files))
-        results["changed_files"] = changed_files
-        results["changed_files_count"] = len(changed_files)
-    except Exception as e:
-        results["changed_files_error"] = str(e)
-        results["changed_files_count"] = 0
+        results.setdefault("changed_files_count", 0)
 
     return results
 
@@ -702,7 +1048,7 @@ def filter_diff_excluding_paths(patch_content: str, exclude_paths: set) -> str:
             skip = path in exclude_paths
         if not skip:
             filtered_lines.append(line)
-    return "\n".join(filtered_lines)
+    return "\n".join(filtered_lines) + "\n"
 
 
 def apply_git_patch(work_dir: Path, patch_content: str, patch_name: str = "test_patch") -> bool:
@@ -787,7 +1133,15 @@ def run_tests_in_docker(
     framework = detect_test_framework(task_metadata or {}, work_dir)
     print(f"   Detected test framework: {framework}")
 
-    container_cmd = build_docker_test_command(framework, fail_to_pass, pass_to_pass)
+    # Extract test file from test_patch for bare test names (no ::)
+    test_file = ""
+    test_patch = (task_metadata or {}).get("test_patch", "")
+    if test_patch:
+        m = re.search(r'diff --git a/(.+?) b/(.+?)\s', test_patch)
+        if m:
+            test_file = m.group(2)
+
+    container_cmd = build_docker_test_command(framework, fail_to_pass, pass_to_pass, test_file=test_file)
     if not container_cmd:
         print("⚠️  Could not build test command")
         results["output"] = "Could not build test command"
@@ -897,10 +1251,12 @@ def run_tests_in_docker(
             results["failed_tests"] = parsed["failed_tests"]
 
             ftp_results, ftp_success = match_pytest_results(
-                fail_to_pass, parsed["passed_set"], parsed["failed_set"], "pass"
+                fail_to_pass, parsed["passed_set"], parsed["failed_set"], "pass",
+                pytest_skipped=parsed["skipped_set"],
             )
             ptp_results, ptp_success = match_pytest_results(
-                pass_to_pass, parsed["passed_set"], parsed["failed_set"], "pass"
+                pass_to_pass, parsed["passed_set"], parsed["failed_set"], "pass",
+                pytest_skipped=parsed["skipped_set"],
             )
             results["fail_to_pass_results"] = ftp_results
             results["pass_to_pass_results"] = ptp_results
@@ -1098,6 +1454,8 @@ def load_transcript_metadata(run_path: Path) -> Dict[str, Any]:
         "exit_code": data.get("exit_code", -1),
         "error": data.get("stderr", "") if data.get("exit_code", 0) != 0 else "",
         "timeout": bool(data.get("timeout", False)),
+        "duration_ms": data.get("duration_ms"),
+        "duration_api_ms": data.get("duration_api_ms"),
     }
 
 
@@ -1119,6 +1477,11 @@ def rebuild_run_result(run_path: Path) -> Dict[str, Any]:
         changed_files = [line for line in changed_files_file.read_text().splitlines() if line.strip()]
     else:
         changed_files = []
+    # Fallback: parse final.diff if changed-files.txt is empty
+    if not changed_files and diff_file.exists():
+        diff_text = diff_file.read_text()
+        if diff_text.strip():
+            changed_files = sorted(parse_diff_file_paths(diff_text))
     result["changed_files"] = changed_files
     result["changed_files_count"] = len(changed_files)
 
@@ -1130,18 +1493,55 @@ def rebuild_run_result(run_path: Path) -> Dict[str, Any]:
         except Exception:
             pass
 
-    timestamps = []
-    for file_name in ["transcript.json", "final.diff", "validation-results.json"]:
-        file_path = run_path / file_name
-        if file_path.exists():
-            timestamps.append(datetime.fromtimestamp(file_path.stat().st_mtime, UTC))
+    # --- Timestamps & duration ---
+    # Priority: run-meta.json > transcript duration_ms > file mtime fallback
+    meta_file = run_path / "run-meta.json"
+    meta = {}
+    if meta_file.exists():
+        try:
+            with open(meta_file) as f:
+                meta = json.load(f)
+        except Exception:
+            pass
 
-    if timestamps:
-        result["start_time"] = min(timestamps).isoformat()
-        result["end_time"] = max(timestamps).isoformat()
-    else:
-        result["start_time"] = ""
-        result["end_time"] = ""
+    duration_seconds = None
+
+    if meta.get("start_time") and meta.get("end_time"):
+        result["start_time"] = meta["start_time"]
+        result["end_time"] = meta["end_time"]
+        meta_start = parse_timestamp(meta["start_time"])
+        meta_end = parse_timestamp(meta["end_time"])
+        if meta_start and meta_end:
+            duration_seconds = (meta_end - meta_start).total_seconds()
+
+    # If no duration from run-meta, try transcript duration_ms
+    if duration_seconds is None:
+        dur_ms = transcript_meta.get("duration_ms")
+        if dur_ms is not None:
+            duration_seconds = dur_ms / 1000.0
+            # Compute approximate start/end from file mtime and duration
+            transcript_file = run_path / "transcript.json"
+            if transcript_file.exists():
+                end_dt = datetime.fromtimestamp(transcript_file.stat().st_mtime, UTC)
+                start_dt = end_dt - timedelta(seconds=duration_seconds)
+                result["start_time"] = start_dt.isoformat()
+                result["end_time"] = end_dt.isoformat()
+
+    if duration_seconds is not None:
+        result["duration_seconds"] = duration_seconds
+    elif "start_time" not in result or "end_time" not in result:
+        # Fallback: file mtime range
+        timestamps = []
+        for file_name in ["transcript.json", "final.diff", "validation-results.json"]:
+            file_path = run_path / file_name
+            if file_path.exists():
+                timestamps.append(datetime.fromtimestamp(file_path.stat().st_mtime, UTC))
+        if timestamps:
+            result["start_time"] = min(timestamps).isoformat()
+            result["end_time"] = max(timestamps).isoformat()
+        else:
+            result.setdefault("start_time", "")
+            result.setdefault("end_time", "")
 
     result["status"] = classify_run(
         result.get("exit_code", -1),
@@ -1225,10 +1625,15 @@ def update_summary(exp_path: Path, runs_dir: Path, analysis_dir: Path) -> Dict[s
     token_usage_values = []
 
     for r in run_results:
-        start = parse_timestamp(r.get("start_time", ""))
-        end = parse_timestamp(r.get("end_time", ""))
-        if start and end:
-            duration_values.append((end - start).total_seconds())
+        # Priority: duration_seconds from rebuild > computed from timestamps
+        ds = r.get("duration_seconds")
+        if ds is not None:
+            duration_values.append(ds)
+        else:
+            start = parse_timestamp(r.get("start_time", ""))
+            end = parse_timestamp(r.get("end_time", ""))
+            if start and end:
+                duration_values.append((end - start).total_seconds())
 
         run_path = runs_dir / f"run-{r.get('run_id', 0):03d}"
         token_usage = extract_token_usage(run_path)
@@ -1322,12 +1727,16 @@ def update_summary(exp_path: Path, runs_dir: Path, analysis_dir: Path) -> Dict[s
             run_path = runs_dir / f"run-{run_id:03d}"
 
             duration_str = "N/A"
-            start_str = r.get("start_time", "")
-            end_str = r.get("end_time", "")
-            start = parse_timestamp(start_str)
-            end = parse_timestamp(end_str)
-            if start and end:
-                duration_str = f"{int((end - start).total_seconds())}s"
+            ds = r.get("duration_seconds")
+            if ds is not None:
+                duration_str = f"{ds:.1f}s"
+            else:
+                start_str = r.get("start_time", "")
+                end_str = r.get("end_time", "")
+                start = parse_timestamp(start_str)
+                end = parse_timestamp(end_str)
+                if start and end:
+                    duration_str = f"{(end - start).total_seconds():.1f}s"
 
             ftp_str = "N/A"
             ptp_str = "N/A"
@@ -1374,6 +1783,44 @@ def update_summary(exp_path: Path, runs_dir: Path, analysis_dir: Path) -> Dict[s
     return summary
 
 
+def revalidate_runs(
+    runs_dir: Path,
+    source_repo: Path,
+    task_metadata: Dict[str, Any],
+    validation_image: str,
+    base_commit: str = "",
+) -> None:
+    """Re-run validation for all existing runs without re-running Claude."""
+    run_dirs = sorted(d for d in runs_dir.glob("run-*") if d.is_dir())
+    if not run_dirs:
+        print("No runs found to revalidate.")
+        return
+
+    print(f"=== Revalidating {len(run_dirs)} runs ===")
+    for run_path in run_dirs:
+        diff_file = run_path / "final.diff"
+        if not diff_file.exists():
+            print(f"  ⚠️  {run_path.name}: no final.diff, skipping")
+            continue
+
+        diff_content = diff_file.read_text()
+        if not diff_content.strip():
+            print(f"  ⚠️  {run_path.name}: empty diff, skipping")
+            continue
+
+        print(f"\n>>> Revalidating {run_path.name}...")
+        run_validation(
+            run_path,
+            source_repo,
+            task_metadata,
+            diff_content,
+            validation_image,
+            base_commit=base_commit,
+        )
+
+    print(f"\n✅ Revalidation complete for {len(run_dirs)} runs")
+
+
 def main():
     args = parse_args()
     exp_path = Path(args.experiment_dir).resolve()
@@ -1391,6 +1838,34 @@ def main():
         print("Error: validation image is required. Pass --validation-image or create env-image.txt first.")
         sys.exit(1)
 
+    # Resolve executor image for Docker execution mode
+    executor_image = None
+    if args.execution_mode == "docker":
+        executor_image = resolve_executor_image(exp_path)
+        if not executor_image and validation_image:
+            executor_image = derive_executor_image_from_validation(validation_image)
+        if not executor_image:
+            print("Error: Docker execution mode requires a claude-executor image. "
+                  "Run build-env.py --with-claude first or pass --executor-image.")
+            sys.exit(1)
+
+        if not args.dry_run:
+            build_executor_image_if_needed(exp_path, executor_image, validation_image or "")
+
+    task_metadata = load_task_metadata(exp_path)
+    base_commit = load_base_commit(exp_path)
+
+    # --revalidate mode: re-run validation only, then rebuild summary
+    if args.revalidate:
+        if not validation_image:
+            print("Error: --validation-image is required for --revalidate mode.")
+            sys.exit(1)
+        revalidate_runs(runs_dir, exp_path / "repo", task_metadata, validation_image, base_commit)
+        summary = update_summary(exp_path, runs_dir, analysis_dir)
+        print("\n=== Revalidation Complete ===")
+        print(f"Summary: {analysis_dir / 'runs-summary.json'}")
+        return
+
     if not plan_path.exists():
         print(f"Error: Plan file not found: {plan_path}")
         sys.exit(1)
@@ -1402,7 +1877,11 @@ def main():
     print(f"Analysis directory: {analysis_dir}")
     print(f"Runs: {args.start} to {args.start + args.runs - 1}")
     print(f"Dry run: {args.dry_run}")
+    print(f"Execution mode: {args.execution_mode}")
+    print(f"Permission mode: {args.claude_permission_mode}")
     print(f"Validation image: {validation_image or 'N/A (dry run)'}")
+    if executor_image:
+        print(f"Executor image: {executor_image}")
     print("============================")
 
     if not args.dry_run:
@@ -1412,8 +1891,6 @@ def main():
             print(f"Error: {e}")
             sys.exit(1)
 
-    task_metadata = load_task_metadata(exp_path)
-    base_commit = load_base_commit(exp_path)
     executed_runs = []
 
     for i in range(args.runs):
@@ -1428,10 +1905,26 @@ def main():
             work_dir = prepare_working_copy(exp_path, run_path)
         prompt = create_execution_prompt(plan_path)
 
-        result = run_claude_code(work_dir, prompt, args.dry_run)
+        result = run_claude_code(
+            work_dir, prompt, args.dry_run,
+            execution_mode=args.execution_mode,
+            claude_permission_mode=args.claude_permission_mode,
+            executor_image=executor_image,
+            docker_cpus=args.docker_cpus,
+            docker_memory=args.docker_memory,
+        )
         result["run_id"] = run_num
         if validation_image:
             result["validation_image"] = validation_image
+
+        # Persist execution metadata for accurate rebuild
+        if not args.dry_run:
+            meta_file = run_path / "run-meta.json"
+            meta_file.write_text(json.dumps({
+                "start_time": result.get("start_time", ""),
+                "end_time": result.get("end_time", ""),
+                "exit_code": result.get("exit_code", -1),
+            }, indent=2))
 
         if not args.dry_run:
             result.update(collect_results(run_path, work_dir))
