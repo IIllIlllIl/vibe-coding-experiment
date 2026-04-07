@@ -1,0 +1,25 @@
+{
+  "experiment": "django__django-11951",
+  "runs_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/runs",
+  "analysis_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/analysis",
+  "generated_at": "2026-04-07T15:00:39.146838+00:00",
+  "total_runs": 0,
+  "successful_runs": 0,
+  "failed_runs": 0,
+  "status_breakdown": {},
+  "run_statuses": [],
+  "statistics": {
+    "files_changed": {
+      "min": 0,
+      "max": 0,
+      "avg": 0,
+      "range": 0
+    },
+    "diff_size_bytes": {
+      "min": 0,
+      "max": 0,
+      "avg": 0,
+      "range": 0
+    }
+  }
+}

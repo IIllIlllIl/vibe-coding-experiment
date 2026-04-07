@@ -1,5 +1,8 @@
 # Vibe Coding Experiment Framework
 
+> **Project Status: Research Prototype**
+> This code supports the "Fixed-Plan Claude Code Execution Variability" experiment. It is **not** production-grade software: there are no unit tests, no logging framework, and dependency versions are loosely pinned. Known limitations are listed in the [Known Issues](#known-issues) section below.
+
 This project studies **execution variability in Claude Code** when given fixed plans. We aim to understand how deterministic Claude Code's execution is when provided with identical instructions across multiple runs.
 
 ## Experiment Methodology
@@ -402,6 +405,17 @@ Also affected `scripts/check-env.py`: `evaluate_expectations` now treats `SKIPPE
 | sphinx-doc__sphinx-9258 | pytest collected 0 tests (likely missing test dependencies in Docker slim image) |
 | pallets__flask-5014 | `werkzeug.__version__` not found in newer werkzeug; version incompatibility |
 | sympy__sympy-24443 | `fail_to_pass` test already passes without gold patch (task data quality issue) |
+
+### Known Issues
+
+| Issue | Status | Impact |
+|-------|--------|--------|
+| `matplotlib__matplotlib-24870` env not reproducible | Replaced with `pylint-dev__pylint-4970` | One fewer task in dataset |
+| `--revalidate` overwrites `validation-results.json` without backup | Open — use `git checkout` to recover originals | Risk of data loss if revalidation introduces bugs |
+| No test suite — critical parsing functions (`parse_pytest_output`, `match_pytest_results`, `apply_git_patch`) untested | Open | Silent regressions possible |
+| Hardcoded constants scattered across scripts (`CLAUDE_CODE_VERSION` in `build-env.py`, repo quotas in `select-tasks.py`) | Open | Changes require editing source files |
+| Dependency versions not locked (`requirements.txt` uses `>=` minimums) | Open | Future dependency updates may break scripts |
+| `config/experiment-config.json` exists but is not read by any script | Open | Config template is unused |
 
 ### Security Warning
 

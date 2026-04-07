@@ -1,0 +1,25 @@
+Experiment: django__django-11951
+Runs directory: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/runs
+Generated: 2026-04-07T15:00:39.146838+00:00
+Total runs: 0
+Successful: 0
+Failed: 0
+
+Status Breakdown:
+
+Files Changed Statistics:
+  Min: 0
+  Max: 0
+  Avg: 0.00
+  Range: 0
+
+Diff Size Statistics (bytes):
+  Min: 0
+  Max: 0
+  Avg: 0.00
+  Range: 0
+
+======================================================================
+RUN DETAILS
+======================================================================
+

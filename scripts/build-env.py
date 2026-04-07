@@ -80,7 +80,10 @@ def detect_python_version(task: dict) -> str:
 
     # sympy <1.1 uses collections.Mapping (removed in Python 3.10+)
     if "sympy" in repo.lower():
-        return "3.9"
+        # Only force 3.9 for old versions that use deprecated collections API
+        if version and version.startswith(("0.", "1.0")):
+            return "3.9"
+        return "3.11"
 
     if version.startswith("2."):
         return "3.10"

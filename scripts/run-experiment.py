@@ -8,7 +8,6 @@ import argparse
 import json
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -18,200 +17,19 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from swebench_adapter import (
+    build_full_test_command,
+    eval_test_results,
+    is_repo_supported,
+    parse_test_output,
+)
+
 
 def utc_now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
 SUCCESS_STATUSES = {"success", "success_timeout", "success_with_error"}
-
-
-def detect_test_framework(task_metadata: Dict[str, Any], work_dir: Optional[Path] = None) -> str:
-    """Detect whether the project uses Django test runner or pytest.
-
-    Returns "django" or "pytest".
-    """
-    repo = task_metadata.get("repo", "")
-    # Django always uses its own test runner
-    if "django" in repo.lower():
-        return "django"
-
-    # Check for conftest.py or pytest config in work_dir
-    if work_dir and work_dir.exists():
-        for marker in ["conftest.py", "pytest.ini", "pyproject.toml", "setup.cfg"]:
-            if (work_dir / marker).exists():
-                if marker == "conftest.py":
-                    return "pytest"
-                try:
-                    content = (work_dir / marker).read_text()
-                    if "pytest" in content or "[tool:pytest]" in content or "[tool.pytest" in content:
-                        return "pytest"
-                except Exception:
-                    pass
-
-    # All non-Django repos in SWE-bench Verified use pytest
-    return "pytest"
-
-
-def build_docker_test_command(
-    framework: str,
-    fail_to_pass: List[str],
-    pass_to_pass: List[str],
-    test_file: str = "",
-) -> str:
-    """Build the test command string to run inside the Docker container."""
-    all_tests = fail_to_pass + pass_to_pass
-
-    if framework == "django":
-        test_modules = set()
-        for test in all_tests:
-            match = re.match(r'\w+\s+\(([\w.]+)\.\w+\)', test)
-            if match:
-                test_modules.add(match.group(1))
-
-        if not test_modules:
-            return ""
-
-        module_args = " ".join(shlex.quote(module) for module in sorted(test_modules))
-        return (
-            "python -m pip install --disable-pip-version-check -e . && "
-            f"python tests/runtests.py -v 2 {module_args}"
-        )
-
-    # pytest: extract unique test file paths and run whole files, then match results from output
-    if not all_tests:
-        return ""
-
-    test_files = set()
-    for test in all_tests:
-        parts = test.split("::")
-        if parts:
-            # If the first part looks like a bare function name (no / and no .py),
-            # it's a bare test name — use the test_file hint instead
-            first = parts[0]
-            if "/" in first or first.endswith(".py"):
-                test_files.add(first)
-            elif test_file:
-                test_files.add(test_file)
-    file_args = " ".join(shlex.quote(f) for f in sorted(test_files))
-    # Try editable install; if it fails, copy .so files from /opt/repo as fallback.
-    # PYTHONPATH must be set before pytest (not inside a subshell), so we use a
-    # single bash -c script that exports after the copy.
-    return (
-        "python -m pip install --disable-pip-version-check "
-        "--no-build-isolation -e . 2>/dev/null || "
-        "(cp -rn /opt/repo/lib/ /workspace/ 2>/dev/null; "
-        "cp -rn /opt/repo/sklearn/ /workspace/ 2>/dev/null; "
-        "true) && "
-        "export PYTHONPATH=/workspace/lib:/workspace && "
-        f"python -m pytest {file_args} -v -W ignore::DeprecationWarning --tb=short 2>&1"
-    )
-
-
-def parse_pytest_output(output: str, fail_to_pass: List[str], pass_to_pass: List[str]) -> Dict[str, Any]:
-    """Parse pytest verbose output and match against expected test names."""
-    passed_tests = set()
-    failed_tests = set()
-
-    skipped_tests = set()
-
-    # pytest -v output: "test/path/test_file.py::TestClass::test_method[param] PASSED [pct%]"
-    # Some parametrized IDs contain spaces (e.g. "*1 xfailed*]"), so use lazy .+? up to status word
-    pytest_pattern = re.compile(
-        r'^(.+?)\s+(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED)\s',
-        re.MULTILINE,
-    )
-    for match in pytest_pattern.finditer(output):
-        test_id = match.group(1)
-        status = match.group(2)
-        if status == "PASSED":
-            passed_tests.add(test_id)
-        elif status == "SKIPPED":
-            skipped_tests.add(test_id)
-        else:
-            failed_tests.add(test_id)
-
-    return {
-        "passed_tests": len(passed_tests),
-        "failed_tests": len(failed_tests),
-        "skipped_tests": len(skipped_tests),
-        "passed_set": passed_tests,
-        "failed_set": failed_tests,
-        "skipped_set": skipped_tests,
-    }
-
-
-def match_pytest_results(
-    expected_tests: List[str],
-    pytest_passed: set,
-    pytest_failed: set,
-    label: str,
-    pytest_skipped: set = None,
-) -> tuple:
-    """Match expected test names against pytest output test IDs.
-
-    pytest outputs full IDs like 'test_file.py::TestClass::test_method'.
-    Expected names may be partial. We match by checking if the expected
-    name's test function appears in the pytest ID.
-
-    Returns (results_dict, success_bool).
-    """
-    if pytest_skipped is None:
-        pytest_skipped = set()
-    results = {}
-    success = True
-
-    for test in expected_tests:
-        # Try exact match first
-        if test in pytest_passed:
-            results[test] = "PASSED"
-            print(f"   ✅ {test}: PASSED (expected to {label})")
-            continue
-        if test in pytest_failed:
-            results[test] = "FAILED"
-            success = False
-            print(f"   ❌ {test}: FAILED (expected to {label})")
-            continue
-        if test in pytest_skipped:
-            results[test] = "SKIPPED"
-            print(f"   ⏭️  {test}: SKIPPED (expected to {label})")
-            continue
-
-        # Try partial match: extract function name and match
-        parts = test.split("::") if "::" in test else [test]
-        func_name = parts[-1] if parts else test
-        found = False
-        for pytest_id in pytest_passed:
-            if func_name in pytest_id or test in pytest_id:
-                results[test] = "PASSED"
-                print(f"   ✅ {test}: PASSED (expected to {label}, matched {pytest_id})")
-                found = True
-                break
-        if found:
-            continue
-        for pytest_id in pytest_failed:
-            if func_name in pytest_id or test in pytest_id:
-                results[test] = "FAILED"
-                success = False
-                print(f"   ❌ {test}: FAILED (expected to {label}, matched {pytest_id})")
-                found = True
-                break
-        if found:
-            continue
-        for pytest_id in pytest_skipped:
-            if func_name in pytest_id or test in pytest_id:
-                results[test] = "SKIPPED"
-                print(f"   ⏭️  {test}: SKIPPED (expected to {label}, matched {pytest_id})")
-                found = True
-                break
-        if found:
-            continue
-
-        results[test] = "NOT_FOUND"
-        success = False
-        print(f"   ⚠️  {test}: NOT FOUND in test output")
-
-    return results, success
 
 
 def extract_token_usage(run_path: Path) -> Dict[str, int]:
@@ -1111,7 +929,7 @@ def run_tests_in_docker(
 ) -> Dict[str, Any]:
     """Run tests inside a fixed Docker validation image and parse results.
 
-    Supports both Django and pytest frameworks automatically.
+    Uses official SWE-bench parser + test command. No fallback parsing.
     """
     results: Dict[str, Any] = {
         "success": False,
@@ -1129,25 +947,19 @@ def run_tests_in_docker(
         results["success"] = True
         return results
 
-    # Detect test framework
-    framework = detect_test_framework(task_metadata or {}, work_dir)
-    print(f"   Detected test framework: {framework}")
+    task = task_metadata or {}
+    repo = task.get("repo", "")
+    version = task.get("version", "")
 
-    # Extract test file from test_patch for bare test names (no ::)
-    test_file = ""
-    test_patch = (task_metadata or {}).get("test_patch", "")
-    if test_patch:
-        m = re.search(r'diff --git a/(.+?) b/(.+?)\s', test_patch)
-        if m:
-            test_file = m.group(2)
+    if not is_repo_supported(repo):
+        raise ValueError(
+            f"Repo '{repo}' has no official SWE-bench parser. "
+            "Cannot run validation. Supported repos are listed by swebench_adapter.list_supported_repos()."
+        )
 
-    container_cmd = build_docker_test_command(framework, fail_to_pass, pass_to_pass, test_file=test_file)
-    if not container_cmd:
-        print("⚠️  Could not build test command")
-        results["output"] = "Could not build test command"
-        return results
-
-    # For pytest: test files are now passed directly in the command (no _test_ids.txt needed)
+    # Build official test command
+    test_patch = task.get("test_patch", "")
+    container_cmd = build_full_test_command(repo, version, test_patch)
 
     cmd = [
         "docker", "run", "--rm",
@@ -1159,7 +971,7 @@ def run_tests_in_docker(
 
     print("🧪 Running validation tests in Docker...")
     print(f"   Image: {image}")
-    print(f"   Framework: {framework}")
+    print(f"   Repo: {repo}")
     print(f"   Tests expected: {len(fail_to_pass) + len(pass_to_pass)}")
 
     try:
@@ -1175,92 +987,38 @@ def run_tests_in_docker(
         results["docker_command"] = cmd
         results["container_command"] = container_cmd
         results["exit_code"] = process.returncode
-        results["framework"] = framework
 
-        if framework == "django":
-            # Django -v 2 output has two formats:
-            #   single-line: test_name (module.class) ... ok
-            #   multi-line:  test_name (module.class)\ndocstring ... ok
-            # We find test names first, then pair each with its result.
-            name_re = re.compile(
-                r'^(\w+)\s+\(([\w.]+)\.(\w+)\)',
-                re.MULTILINE,
-            )
-            result_re = re.compile(r'\.\.\.\s+(ok|FAIL|FAILED|ERROR)\s*$', re.MULTILINE)
+        # Parse output using official SWE-bench parser
+        status_map = parse_test_output(repo, output)
+        eval_result = eval_test_results(status_map, fail_to_pass, pass_to_pass)
 
-            passed_tests = set()
-            failed_tests = set()
-            name_matches = list(name_re.finditer(output))
-            for i, match in enumerate(name_matches):
-                displayed_name = match.group(1)
-                class_path = match.group(2)
-                class_name = match.group(3)
-                full_test_name = f"{displayed_name} ({class_path}.{class_name})"
+        results["fail_to_pass_results"] = eval_result["fail_to_pass_results"]
+        results["pass_to_pass_results"] = eval_result["pass_to_pass_results"]
+        results["success"] = eval_result["success"]
 
-                # Search for result between this match and the next
-                search_start = match.end()
-                search_end = name_matches[i + 1].start() if i + 1 < len(name_matches) else len(output)
-                section = output[search_start:search_end]
-                result_match = result_re.search(section)
-                if result_match:
-                    status = result_match.group(1)
-                    if status == "ok":
-                        passed_tests.add(full_test_name)
-                    else:
-                        failed_tests.add(full_test_name)
+        # Compute aggregate counts from status_map
+        from swebench_adapter import TestStatus
+        passed_count = sum(1 for s in status_map.values() if s == TestStatus.PASSED or s == TestStatus.XFAIL)
+        failed_count = sum(1 for s in status_map.values() if s == TestStatus.FAILED or s == TestStatus.ERROR)
+        results["total_tests"] = len(status_map)
+        results["passed_tests"] = passed_count
+        results["failed_tests"] = failed_count
 
-            results["total_tests"] = len(passed_tests) + len(failed_tests)
-            results["passed_tests"] = len(passed_tests)
-            results["failed_tests"] = len(failed_tests)
-
-            ftp_success = True
-            for test in fail_to_pass:
-                if test in passed_tests:
-                    results["fail_to_pass_results"][test] = "PASSED"
-                    print(f"   ✅ {test}: PASSED (expected to pass)")
-                elif test in failed_tests:
-                    results["fail_to_pass_results"][test] = "FAILED"
-                    ftp_success = False
-                    print(f"   ❌ {test}: FAILED (expected to pass)")
-                else:
-                    results["fail_to_pass_results"][test] = "NOT_FOUND"
-                    ftp_success = False
-                    print(f"   ⚠️  {test}: NOT FOUND in test output")
-
-            ptp_success = True
-            for test in pass_to_pass:
-                if test in passed_tests:
-                    results["pass_to_pass_results"][test] = "PASSED"
-                    print(f"   ✅ {test}: PASSED (expected to pass)")
-                elif test in failed_tests:
-                    results["pass_to_pass_results"][test] = "FAILED"
-                    ptp_success = False
-                    print(f"   ❌ {test}: FAILED (expected to pass)")
-                else:
-                    results["pass_to_pass_results"][test] = "NOT_FOUND"
-                    ptp_success = False
-                    print(f"   ⚠️  {test}: NOT FOUND in test output")
-
-            results["success"] = ftp_success and ptp_success
-
-        else:
-            # pytest framework
-            parsed = parse_pytest_output(output, fail_to_pass, pass_to_pass)
-            results["total_tests"] = parsed["passed_tests"] + parsed["failed_tests"]
-            results["passed_tests"] = parsed["passed_tests"]
-            results["failed_tests"] = parsed["failed_tests"]
-
-            ftp_results, ftp_success = match_pytest_results(
-                fail_to_pass, parsed["passed_set"], parsed["failed_set"], "pass",
-                pytest_skipped=parsed["skipped_set"],
-            )
-            ptp_results, ptp_success = match_pytest_results(
-                pass_to_pass, parsed["passed_set"], parsed["failed_set"], "pass",
-                pytest_skipped=parsed["skipped_set"],
-            )
-            results["fail_to_pass_results"] = ftp_results
-            results["pass_to_pass_results"] = ptp_results
-            results["success"] = ftp_success and ptp_success
+        # Print per-test results
+        for test, status in eval_result["fail_to_pass_results"].items():
+            if status == "PASSED":
+                print(f"   ✅ {test}: PASSED (expected to pass)")
+            elif status == "FAILED":
+                print(f"   ❌ {test}: FAILED (expected to pass)")
+            else:
+                print(f"   ⚠️  {test}: {status} (expected to pass)")
+        for test, status in eval_result["pass_to_pass_results"].items():
+            if status == "PASSED":
+                print(f"   ✅ {test}: PASSED (expected to pass)")
+            elif status == "FAILED":
+                print(f"   ❌ {test}: FAILED (expected to pass)")
+            else:
+                print(f"   ⚠️  {test}: {status} (expected to pass)")
 
         if results["success"]:
             print("✅ All tests passed as expected!")
@@ -1372,6 +1130,21 @@ def run_validation(
         total = len(test_results["pass_to_pass_results"])
         regression_score = passed / total if total > 0 else 1.0
 
+    # F8: If no test results at all, correctness is None (not 0)
+    has_any_results = test_results.get("fail_to_pass_results") or test_results.get("pass_to_pass_results")
+    if has_any_results:
+        correctness = {
+            "functional": functional_score,
+            "regression": regression_score,
+            "overall": (functional_score + regression_score) / 2,
+        }
+    else:
+        correctness = {
+            "functional": None,
+            "regression": None,
+            "overall": None,
+        }
+
     validation_result = {
         "validation_directory": str(validation_dir),
         "validation_image": validation_image,
@@ -1385,16 +1158,20 @@ def run_validation(
         },
         "test_file_check": test_file_check,
         "test_results": test_results,
-        "correctness": {
-            "functional": functional_score,
-            "regression": regression_score,
-            "overall": (functional_score + regression_score) / 2
-        }
+        "correctness": correctness,
     }
 
     val_file = run_path / "validation-results.json"
     with open(val_file, "w") as f:
         json.dump(validation_result, f, indent=2)
+
+    # Clean up validation work directory (repo copy, can be very large)
+    if validation_dir.exists():
+        try:
+            shutil.rmtree(validation_dir)
+            print(f"  🧹 Cleaned up validation/")
+        except Exception as e:
+            print(f"  ⚠️  Failed to clean up validation/: {e}")
 
     print(f"  ✅ Validation results saved to {val_file}")
     return validation_result
@@ -1667,15 +1444,16 @@ def update_summary(exp_path: Path, runs_dir: Path, analysis_dir: Path) -> Dict[s
         }
 
     if validation_results:
-        functional_scores = [v["functional"] for v in validation_results]
-        regression_scores = [v["regression"] for v in validation_results]
-        overall_scores = [v["overall"] for v in validation_results]
+        # Filter out None scores (from F8: correctness is None when no test results)
+        functional_scores = [v["functional"] for v in validation_results if v["functional"] is not None]
+        regression_scores = [v["regression"] for v in validation_results if v["regression"] is not None]
+        overall_scores = [v["overall"] for v in validation_results if v["overall"] is not None]
 
         summary["validation"] = {
             "total_validated": len(validation_results),
-            "average_functional_score": sum(functional_scores) / len(functional_scores),
-            "average_regression_score": sum(regression_scores) / len(regression_scores),
-            "average_overall_score": sum(overall_scores) / len(overall_scores),
+            "average_functional_score": sum(functional_scores) / len(functional_scores) if functional_scores else 0,
+            "average_regression_score": sum(regression_scores) / len(regression_scores) if regression_scores else 0,
+            "average_overall_score": sum(overall_scores) / len(overall_scores) if overall_scores else 0,
             "perfect_runs": len([s for s in overall_scores if s == 1.0]),
             "test_file_created_count": len([v for v in validation_results if v["test_file_created"]]),
             "per_run": validation_results

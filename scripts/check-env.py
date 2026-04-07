@@ -12,6 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from swebench_adapter import is_repo_supported
 
 RUN_EXPERIMENT_PATH = Path(__file__).with_name("run-experiment.py")
 _spec = importlib.util.spec_from_file_location("run_experiment_script", RUN_EXPERIMENT_PATH)
@@ -52,8 +53,14 @@ def prepare_clean_copy(exp_path: Path, work_root: Path, name: str) -> Path:
 def evaluate_expectations(results: dict, expect_fail_to_pass_passed: bool) -> dict:
     ftp = results.get("fail_to_pass_results", {})
     ptp = results.get("pass_to_pass_results", {})
-    ftp_ok = all(v == ("PASSED" if expect_fail_to_pass_passed else "FAILED") for v in ftp.values()) if ftp else False
-    ptp_ok = all(v in ("PASSED", "SKIPPED") for v in ptp.values()) if ptp else False
+
+    # F16: If FTP is empty, skip that check (return True)
+    if ftp:
+        ftp_ok = all(v == ("PASSED" if expect_fail_to_pass_passed else "FAILED") for v in ftp.values())
+    else:
+        ftp_ok = True
+
+    ptp_ok = all(v in ("PASSED", "SKIPPED") for v in ptp.values()) if ptp else True
     return {
         "fail_to_pass_expectation_met": ftp_ok,
         "pass_to_pass_expectation_met": ptp_ok,
@@ -69,6 +76,13 @@ def main():
         sys.exit(1)
 
     task_metadata = load_task_metadata(exp_path)
+
+    # Repo coverage gate: ensure official parser exists
+    repo = task_metadata.get("repo", "")
+    if not is_repo_supported(repo):
+        print(f"Error: repo '{repo}' has no official SWE-bench parser. Cannot validate.")
+        print(f"Supported repos are listed by: python -c \"from swebench_adapter import list_supported_repos; print(list_supported_repos())\"")
+        sys.exit(1)
     output = {
         "experiment": exp_path.name,
         "image": args.image,

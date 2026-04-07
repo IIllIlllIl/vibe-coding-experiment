@@ -79,10 +79,17 @@ def setup_single_task(
 
     if not repo_dir.exists():
         print(f"  Cloning {repo_full}...")
-        subprocess.run(
-            ["git", "clone", "--quiet", clone_url, str(repo_dir)],
-            check=True,
-        )
+        try:
+            subprocess.run(
+                ["git", "clone", "--quiet", clone_url, str(repo_dir)],
+                check=True,
+            )
+        except subprocess.CalledProcessError:
+            # F18: Clean up incomplete clone on failure
+            if repo_dir.exists():
+                import shutil
+                shutil.rmtree(repo_dir, ignore_errors=True)
+            raise
     else:
         print(f"  repo/ already exists, fetching...")
 

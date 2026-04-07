@@ -13,6 +13,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from swebench_adapter import is_repo_supported
+
 RANDOM_SEED = 42
 
 # Repository targets (1-4 each, total = 30)
@@ -88,12 +90,23 @@ EXCLUSION_CHECKS = [
 ]
 
 
+def check_repo_has_parser(task: Dict[str, Any]) -> Optional[str]:
+    """Exclude tasks whose repo has no official SWE-bench parser."""
+    repo = task.get("repo", "")
+    if not is_repo_supported(repo):
+        return "no_official_parser"
+    return None
+
+
+FILTER_CHECKS = EXCLUSION_CHECKS + [check_repo_has_parser]
+
+
 def apply_exclusions(tasks: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
     excluded_counts: Counter = Counter()
     clean = []
     for task in tasks:
         excluded = False
-        for check in EXCLUSION_CHECKS:
+        for check in FILTER_CHECKS:
             reason = check(task)
             if reason:
                 excluded_counts[reason] += 1
@@ -413,6 +426,7 @@ def write_rationale(
         "empty_fail_to_pass": "Tasks with no FAIL_TO_PASS test cases",
         "empty_gold_patch": "Tasks with empty or missing gold patch",
         "insufficient_problem_statement": "Tasks with problem statement < 50 chars",
+        "no_official_parser": "Tasks whose repo has no official SWE-bench parser",
     }
     for reason, desc in filter_descriptions.items():
         count = excluded_counts.get(reason, 0)
