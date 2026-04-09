@@ -1,0 +1,135 @@
+{
+  "experiment": "sympy__sympy-12481",
+  "runs_directory": "experiments/sympy__sympy-12481/results/plan-05/runs",
+  "analysis_directory": "experiments/sympy__sympy-12481/results/plan-05/analysis",
+  "generated_at": "2026-04-08T19:06:05.649448+00:00",
+  "total_runs": 5,
+  "successful_runs": 5,
+  "failed_runs": 0,
+  "status_breakdown": {
+    "success": 5
+  },
+  "run_statuses": [
+    {
+      "run_id": 1,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T18:53:52.424838+00:00",
+      "end_time": "2026-04-08T18:56:05.763900+00:00",
+      "changed_files_count": 5,
+      "diff_size": 189202,
+      "error": ""
+    },
+    {
+      "run_id": 2,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T18:56:11.582086+00:00",
+      "end_time": "2026-04-08T18:57:26.560277+00:00",
+      "changed_files_count": 5,
+      "diff_size": 167507,
+      "error": ""
+    },
+    {
+      "run_id": 3,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T18:57:32.202229+00:00",
+      "end_time": "2026-04-08T19:00:16.996925+00:00",
+      "changed_files_count": 5,
+      "diff_size": 196203,
+      "error": ""
+    },
+    {
+      "run_id": 4,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:00:33.356908+00:00",
+      "end_time": "2026-04-08T19:04:05.377400+00:00",
+      "changed_files_count": 5,
+      "diff_size": 218519,
+      "error": ""
+    },
+    {
+      "run_id": 5,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:04:11.228958+00:00",
+      "end_time": "2026-04-08T19:06:01.601885+00:00",
+      "changed_files_count": 5,
+      "diff_size": 159386,
+      "error": ""
+    }
+  ],
+  "statistics": {
+    "files_changed": {
+      "min": 5,
+      "max": 5,
+      "avg": 5.0,
+      "range": 0
+    },
+    "diff_size_bytes": {
+      "min": 159386,
+      "max": 218519,
+      "avg": 186163.4,
+      "range": 59133
+    }
+  },
+  "durations_seconds": {
+    "min": 74.978191,
+    "max": 212.020492,
+    "avg": 139.1010736,
+    "range": 137.042301
+  },
+  "tokens": {
+    "average_input_tokens": 8567.4,
+    "average_output_tokens": 2253.0,
+    "average_cache_read_input_tokens": 633420.8,
+    "average_total_tokens": 10820.4
+  },
+  "validation": {
+    "total_validated": 5,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 5,
+    "test_file_created_count": 0,
+    "per_run": [
+      {
+        "run_id": 1,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 2,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 3,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 4,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 5,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+Experiment: scikit-learn__scikit-learn-14053
+Runs directory: experiments/scikit-learn__scikit-learn-14053/results/plan-01/runs
+Generated: 2026-04-08T19:22:43.572494+00:00
+Total runs: 5
+Successful: 5
+Failed: 0
+
+Status Breakdown:
+  success: 5
+
+Files Changed Statistics:
+  Min: 5
+  Max: 5
+  Avg: 5.00
+  Range: 0
+
+Diff Size Statistics (bytes):
+  Min: 126143
+  Max: 167721
+  Avg: 152041.00
+  Range: 41578
+
+Duration Statistics (seconds):
+  Min: 117.55
+  Max: 198.73
+  Avg: 164.56
+  Range: 81.18
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=success, duration=117.6s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=4777, output_tokens=2149, cache_read_input_tokens=559360, tokens=6926
+Run 002: status=success, duration=188.2s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=5343, output_tokens=2199, cache_read_input_tokens=636736, tokens=7542
+Run 003: status=success, duration=155.9s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=23617, output_tokens=2404, cache_read_input_tokens=800320, tokens=26021
+Run 004: status=success, duration=198.7s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=6294, output_tokens=2277, cache_read_input_tokens=631936, tokens=8571
+Run 005: status=success, duration=162.4s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=23491, output_tokens=2171, cache_read_input_tokens=618112, tokens=25662
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 5
+Average functional score: 100.00%
+Average regression score: 100.00%
+Average overall score: 100.00%
+Perfect runs (100% overall): 5
+Runs with test file created: 0

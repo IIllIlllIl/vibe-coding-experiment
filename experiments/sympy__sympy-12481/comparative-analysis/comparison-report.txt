@@ -1,0 +1,62 @@
+Experiment: sympy__sympy-12481
+Generated: 2026-04-08T19:06:05.798490+00:00
+
+Per-plan summary:
+- plan-01
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=27434
+  changed_files_range=1
+  duration_range=6311.78s
+  avg_overall_validation=100.00%
+  variability_score=27535
+
+- plan-02
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=82903
+  changed_files_range=0
+  duration_range=144.78s
+  avg_overall_validation=100.00%
+  variability_score=83003
+
+- plan-03
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=314033
+  changed_files_range=0
+  duration_range=1128.89s
+  avg_overall_validation=100.00%
+  variability_score=314133
+
+- plan-04
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=13291
+  changed_files_range=0
+  duration_range=75.21s
+  avg_overall_validation=100.00%
+  variability_score=13391
+
+- plan-05
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=59133
+  changed_files_range=0
+  duration_range=137.04s
+  avg_overall_validation=100.00%
+  variability_score=59233
+
+Cross-plan comparison:
+- highest_success_rate: plan-01
+- lowest_success_rate: plan-01
+- highest_overall_validation: plan-01
+- lowest_overall_validation: plan-01
+- most_variable_diff_size: plan-03
+- least_variable_diff_size: plan-04
+- most_variable_changed_files: plan-01
+- least_variable_changed_files: plan-02
+- most_variable_duration: plan-01
+- least_variable_duration: plan-04
+- most_variable_overall: plan-03
+- least_variable_overall: plan-04

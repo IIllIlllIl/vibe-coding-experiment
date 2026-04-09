@@ -1,0 +1,42 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": true,
+  "duration_ms": 3882,
+  "duration_api_ms": 0,
+  "num_turns": 1,
+  "result": "Failed to authenticate. API Error: 403 {\"error\":{\"message\":\"insufficient balance\",\"type\":\"billing_error\"},\"type\":\"error\"}",
+  "stop_reason": "stop_sequence",
+  "session_id": "2db2825c-521e-44c4-b5d4-9936dea7c148",
+  "total_cost_usd": 0,
+  "usage": {
+    "input_tokens": 0,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 0,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 0,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "",
+    "iterations": [],
+    "speed": "standard"
+  },
+  "modelUsage": {},
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "06242893-9722-40d9-9e6f-1e13d9c898b5",
+  "raw_stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"is_error\":true,\"duration_ms\":3882,\"duration_api_ms\":0,\"num_turns\":1,\"result\":\"Failed to authenticate. API Error: 403 {\\\"error\\\":{\\\"message\\\":\\\"insufficient balance\\\",\\\"type\\\":\\\"billing_error\\\"},\\\"type\\\":\\\"error\\\"}\",\"stop_reason\":\"stop_sequence\",\"session_id\":\"2db2825c-521e-44c4-b5d4-9936dea7c148\",\"total_cost_usd\":0,\"usage\":{\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":0,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"uuid\":\"06242893-9722-40d9-9e6f-1e13d9c898b5\"}\n",
+  "stderr": "WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested\n",
+  "exit_code": 1,
+  "command": "claude -p --permission-mode acceptEdits --output-format json",
+  "cwd": "/testbed",
+  "execution_mode": "docker",
+  "executor_image": "claude-swe-env:pylint-dev-pylint-4970"
+}

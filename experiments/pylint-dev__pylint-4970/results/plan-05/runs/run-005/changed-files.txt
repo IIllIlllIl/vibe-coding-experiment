@@ -1,0 +1,3 @@
+.claude.json
+.claude/backups/.claude.json.backup.1775687796680
+.claude/projects/-testbed/c8b3f381-ed62-4d3c-b86b-f0f8c132dbed.jsonl

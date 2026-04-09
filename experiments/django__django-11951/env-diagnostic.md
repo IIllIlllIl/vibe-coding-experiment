@@ -194,17 +194,17 @@
 ## How to Fix
 
 1. Read the diagnostic output above to understand what's failing
-2. Check the Dockerfile: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/env-build/Dockerfile
-3. Check the repo source: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/repo
+2. Check the Dockerfile: experiments/django__django-11951/env-build/Dockerfile
+3. Check the repo source: experiments/django__django-11951/repo
 4. Common fixes:
    - Missing dependencies: add pip install to Dockerfile
    - Wrong Python version: update FROM line in Dockerfile
    - Test framework issues: ensure pytest/django test runner is properly configured
    - Import errors: install missing packages
 5. After fixing, rebuild the image:
-   python scripts/build-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951 --rebuild
+   python scripts/build-env.py experiments/django__django-11951 --rebuild
 6. Re-run env check:
-   python scripts/check-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951 --image swe-env:django-django-11951
+   python scripts/check-env.py experiments/django__django-11951 --image swe-env:django-django-11951
 
 ## Claude Code Fix Prompt
 
@@ -219,13 +219,13 @@ The environment check failed:
   test_patch_only: exit_code=1, 18 passed, 1 failed
 
 Key issues to investigate:
-1. Check the test output in /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/env-check.json for errors
-2. Check if the Dockerfile at /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/env-build/Dockerfile has correct dependencies
+1. Check the test output in experiments/django__django-11951/env-check.json for errors
+2. Check if the Dockerfile at experiments/django__django-11951/env-build/Dockerfile has correct dependencies
 3. The test framework is: django
 
 After fixing, rebuild and verify:
-  python scripts/build-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951
-  python scripts/check-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951 --image swe-env:django-django-11951
+  python scripts/build-env.py experiments/django__django-11951
+  python scripts/check-env.py experiments/django__django-11951 --image swe-env:django-django-11951
 
-Save this plan to /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/django__django-11951/plans/env-fix-plan.md
+Save this plan to experiments/django__django-11951/plans/env-fix-plan.md
 ---

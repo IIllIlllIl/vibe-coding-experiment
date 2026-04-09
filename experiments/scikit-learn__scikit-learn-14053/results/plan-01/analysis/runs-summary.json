@@ -1,0 +1,135 @@
+{
+  "experiment": "scikit-learn__scikit-learn-14053",
+  "runs_directory": "experiments/scikit-learn__scikit-learn-14053/results/plan-01/runs",
+  "analysis_directory": "experiments/scikit-learn__scikit-learn-14053/results/plan-01/analysis",
+  "generated_at": "2026-04-08T19:22:43.572494+00:00",
+  "total_runs": 5,
+  "successful_runs": 5,
+  "failed_runs": 0,
+  "status_breakdown": {
+    "success": 5
+  },
+  "run_statuses": [
+    {
+      "run_id": 1,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:06:12.873414+00:00",
+      "end_time": "2026-04-08T19:08:10.427627+00:00",
+      "changed_files_count": 5,
+      "diff_size": 126143,
+      "error": ""
+    },
+    {
+      "run_id": 2,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:08:44.187624+00:00",
+      "end_time": "2026-04-08T19:11:52.351201+00:00",
+      "changed_files_count": 5,
+      "diff_size": 156909,
+      "error": ""
+    },
+    {
+      "run_id": 3,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:12:26.493346+00:00",
+      "end_time": "2026-04-08T19:15:02.401458+00:00",
+      "changed_files_count": 5,
+      "diff_size": 167721,
+      "error": ""
+    },
+    {
+      "run_id": 4,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:15:36.268720+00:00",
+      "end_time": "2026-04-08T19:18:55.000452+00:00",
+      "changed_files_count": 5,
+      "diff_size": 154375,
+      "error": ""
+    },
+    {
+      "run_id": 5,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T19:19:29.148996+00:00",
+      "end_time": "2026-04-08T19:22:11.593150+00:00",
+      "changed_files_count": 5,
+      "diff_size": 155057,
+      "error": ""
+    }
+  ],
+  "statistics": {
+    "files_changed": {
+      "min": 5,
+      "max": 5,
+      "avg": 5.0,
+      "range": 0
+    },
+    "diff_size_bytes": {
+      "min": 126143,
+      "max": 167721,
+      "avg": 152041.0,
+      "range": 41578
+    }
+  },
+  "durations_seconds": {
+    "min": 117.554213,
+    "max": 198.731732,
+    "avg": 164.5603576,
+    "range": 81.17751899999999
+  },
+  "tokens": {
+    "average_input_tokens": 12704.4,
+    "average_output_tokens": 2240.0,
+    "average_cache_read_input_tokens": 649292.8,
+    "average_total_tokens": 14944.4
+  },
+  "validation": {
+    "total_validated": 5,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 5,
+    "test_file_created_count": 0,
+    "per_run": [
+      {
+        "run_id": 1,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 2,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 3,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 4,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 5,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      }
+    ]
+  }
+}

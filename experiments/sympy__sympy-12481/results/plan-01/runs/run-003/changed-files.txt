@@ -1,0 +1,4 @@
+.claude.json
+.claude/backups/.claude.json.backup.1775670490570
+.claude/projects/-testbed/dd334b65-bba8-44d0-9a38-5e4da12ee508.jsonl
+sympy/combinatorics/permutations.py

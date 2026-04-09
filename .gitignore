@@ -38,6 +38,7 @@ env/
 
 # Logs
 *.log
+logs/
 
 # Local Claude state
 .claude/

@@ -1,15 +1,18 @@
 """
 Thin adapter for SWE-bench evaluation utilities.
 
-Extracts standalone log parser functions and evaluation logic from the vendored
-swebench package without triggering its deep dependency chain. Only imports
-the pure-Python parser file (which only needs `re`) and the simple enum constants.
+Provides two modes of operation:
+1. Legacy mode: exec-based lazy loading of parsers and constants (avoids deep deps).
+2. Official mode: direct import of swebench.harness.* after calling ensure_swebench_importable().
 """
 
+import importlib
 import importlib.util
+import json
 import re
 import shlex
 import sys
+import types
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -283,3 +286,141 @@ def build_full_test_command(repo: str, version: str, test_patch: str) -> str:
     full_test = full_test.replace("./tests/runtests.py", "python tests/runtests.py")
 
     return f"{install_step} && {full_test}"
+
+
+# ---------------------------------------------------------------------------
+# Official SWE-bench harness integration
+# ---------------------------------------------------------------------------
+
+_swebench_initialized = False
+
+
+def ensure_swebench_importable() -> None:
+    """Make swebench.harness.* importable from the vendored copy.
+
+    The vendored swebench package has a top-level __init__.py that imports
+    swebench.collect.build_dataset (needs ghapi).  We bypass this by
+    registering stub parent packages with proper __path__ so that Python's
+    import machinery can find the real submodule files on disk without
+    executing the problematic top-level __init__.py files.
+
+    After calling this, you can do:
+        from swebench.harness.run_evaluation import run_instance
+        from swebench.harness.test_spec.test_spec import make_test_spec
+    """
+    global _swebench_initialized
+    if _swebench_initialized:
+        return
+
+    vendored = _SWEBENCH_ROOT
+    if str(vendored) not in sys.path:
+        sys.path.insert(0, str(vendored))
+
+    # Only stub the top-level swebench and swebench.harness packages.
+    # Their __init__.py files import from swebench.collect (needs ghapi)
+    # and all submodules respectively.  By providing stubs with __path__,
+    # Python can still find and import subpackages normally.
+    for pkg_name, pkg_path in [
+        ("swebench", vendored / "swebench"),
+        ("swebench.harness", vendored / "swebench" / "harness"),
+    ]:
+        if pkg_name not in sys.modules:
+            mod = types.ModuleType(pkg_name)
+            mod.__path__ = [str(pkg_path)]
+            mod.__package__ = pkg_name
+            sys.modules[pkg_name] = mod
+
+    _swebench_initialized = True
+
+
+def load_repo_specs(repo: str, version: str) -> Dict[str, Any]:
+    """Load the full repo+version specs from vendored SWE-bench constants.
+
+    Returns dict with keys like 'install', 'test_cmd', 'python', 'packages', etc.
+    Returns empty dict if not found.
+    """
+    constants_path = _SWEBENCH_ROOT / "swebench" / "harness" / "constants" / "python.py"
+    if not constants_path.exists():
+        return {}
+
+    namespace = {}
+    try:
+        exec(compile(constants_path.read_text(), str(constants_path), "exec"), namespace)
+    except Exception:
+        return {}
+
+    specs_map = namespace.get("MAP_REPO_VERSION_TO_SPECS_PY", {})
+    return specs_map.get(repo, {}).get(version, {})
+
+
+def convert_report_to_validation_results(
+    instance_id: str,
+    image_tag: str,
+    report: Dict[str, Any],
+    fail_to_pass: List[str],
+    pass_to_pass: List[str],
+    completed: bool = True,
+) -> Dict[str, Any]:
+    """Convert official report.json output to our validation-results.json schema.
+
+    Args:
+        instance_id: The SWE-bench instance ID.
+        image_tag: Docker image used.
+        report: The report dict (keyed by instance_id) from run_instance / get_eval_report.
+        fail_to_pass: List of fail_to_pass test names.
+        pass_to_pass: List of pass_to_pass test names.
+        completed: Whether run_instance completed successfully.
+
+    Returns:
+        Dict matching our validation-results.json schema.
+    """
+    instance_report = report.get(instance_id, {})
+    tests_status = instance_report.get("tests_status", {})
+
+    # Build per-test result dicts
+    f2p_success = set(tests_status.get("FAIL_TO_PASS", {}).get("success", []))
+    f2p_failure = set(tests_status.get("FAIL_TO_PASS", {}).get("failure", []))
+    p2p_success = set(tests_status.get("PASS_TO_PASS", {}).get("success", []))
+    p2p_failure = set(tests_status.get("PASS_TO_PASS", {}).get("failure", []))
+
+    ftp_results = {t: "PASSED" for t in f2p_success}
+    ftp_results.update({t: "FAILED" for t in f2p_failure})
+
+    ptp_results = {t: "PASSED" for t in p2p_success}
+    ptp_results.update({t: "FAILED" for t in p2p_failure})
+
+    # Compute correctness scores
+    total_ftp = len(f2p_success) + len(f2p_failure)
+    total_ptp = len(p2p_success) + len(p2p_failure)
+
+    if completed:
+        functional = len(f2p_success) / total_ftp if total_ftp > 0 else 1.0
+        regression = len(p2p_success) / total_ptp if total_ptp > 0 else 1.0
+        overall = (functional + regression) / 2
+    else:
+        functional = None
+        regression = None
+        overall = None
+
+    return {
+        "validation_image": image_tag,
+        "patches_applied": {
+            "test_patch": instance_report.get("patch_successfully_applied", False),
+            "claude_patch": instance_report.get("patch_exists", False),
+        },
+        "test_results": {
+            "success": instance_report.get("resolved", False),
+            "fail_to_pass_results": ftp_results,
+            "pass_to_pass_results": ptp_results,
+            "total_tests": total_ftp + total_ptp,
+            "passed_tests": len(f2p_success) + len(p2p_success),
+            "failed_tests": len(f2p_failure) + len(p2p_failure),
+        },
+        "correctness": {
+            "functional": functional,
+            "regression": regression,
+            "overall": overall,
+        },
+        "resolved": instance_report.get("resolved", False),
+    }
+

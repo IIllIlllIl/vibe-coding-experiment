@@ -1,7 +1,7 @@
 {
   "experiment": "exp-001-django-10924",
-  "runs_directory": "/Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-03/runs",
-  "analysis_directory": "/Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-03/analysis",
+  "runs_directory": "experiments/exp-001-django-10924/results/plan-03/runs",
+  "analysis_directory": "experiments/exp-001-django-10924/results/plan-03/analysis",
   "generated_at": "2026-03-30T22:37:00.522030+00:00",
   "total_runs": 10,
   "successful_runs": 10,

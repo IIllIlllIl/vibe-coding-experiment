@@ -1,0 +1,4 @@
+.claude.json
+.claude/backups/.claude.json.backup.1775680283208
+.claude/projects/-testbed/d7971c20-2862-4d00-b9e9-340961c654c8.jsonl
+pylint/checkers/similar.py

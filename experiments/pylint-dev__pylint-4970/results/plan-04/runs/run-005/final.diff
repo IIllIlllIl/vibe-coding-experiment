@@ -1,0 +1,36 @@
+diff --git a/.claude.json b/.claude.json
+new file mode 100644
+index 000000000..4ae86cf64
+--- /dev/null
++++ b/.claude.json
+@@ -0,0 +1,7 @@
++{
++  "firstStartTime": "2026-04-08T22:35:37.370Z",
++  "opusProMigrationComplete": true,
++  "sonnet1m45MigrationComplete": true,
++  "migrationVersion": 11,
++  "userID": "aec582728fb756c5c3a2ac2dacff0808e44dbcb6d4f867bad663a87cabf7736a"
++}
+\ No newline at end of file
+diff --git a/.claude/backups/.claude.json.backup.1775687737501 b/.claude/backups/.claude.json.backup.1775687737501
+new file mode 100644
+index 000000000..f0f38369c
+--- /dev/null
++++ b/.claude/backups/.claude.json.backup.1775687737501
+@@ -0,0 +1,3 @@
++{
++  "firstStartTime": "2026-04-08T22:35:37.370Z"
++}
+\ No newline at end of file
+diff --git a/.claude/projects/-testbed/d59bdd3c-4063-4de4-b12e-269d66496e01.jsonl b/.claude/projects/-testbed/d59bdd3c-4063-4de4-b12e-269d66496e01.jsonl
+new file mode 100644
+index 000000000..15d9b6adc
+--- /dev/null
++++ b/.claude/projects/-testbed/d59bdd3c-4063-4de4-b12e-269d66496e01.jsonl
+@@ -0,0 +1,6 @@
++{"type":"queue-operation","operation":"enqueue","timestamp":"2026-04-08T22:35:38.258Z","sessionId":"d59bdd3c-4063-4de4-b12e-269d66496e01","content":"Below is an approved final execution plan.\n\nDo not re-plan, do not rewrite the plan, do not propose alternatives, do not restate the plan.\nProceed to implement this plan directly.\n\nApproved plan:\n--- plan start ---\n# Fix: `min-similarity-lines=0` should disable duplicate code check\n\n## Context\n\nWhen users set `min-similarity-lines` to `0` in the rcfile, they expect the duplicate code check to be disabled (similar to how flake8 treats `0` as disabling a check). Instead, pylint treats every line as a potential duplicate because the comparison at `similar.py:527` (`if eff_cmn_nb > self.min_lines`) becomes `if eff_cmn_nb > 0`, causing nearly every line to be flagged.\n\n## Changes\n\n### File: `pylint/checkers/similar.py`\n\n1. **`SimilarChecker.close()` (line 831)** — Add early return when `self.min_lines == 0` to skip similarity computation entirely.\n\n2. **`Similar.run()` (line 391)** — Add early return when `self.min_lines == 0` for the standalone CLI path.\n\n3. **Option help text (line 742)** — Update help string to mention that `0` disables the check.\n\n## Verification\n\n1. Create a test file with some duplicate lines, run `pylint --min-similarity-lines=0` and confirm no `R0801` messages are emitted.\n2. Run existing similarity tests to ensure no regressions: `python -m pytest tests/checkers/unittest_similar.py`\n\n--- plan end ---"}
++{"type":"queue-operation","operation":"dequeue","timestamp":"2026-04-08T22:35:38.264Z","sessionId":"d59bdd3c-4063-4de4-b12e-269d66496e01"}
++{"parentUuid":null,"isSidechain":false,"promptId":"e177b0fd-78c7-40a7-82f8-99519a37b43f","type":"user","message":{"role":"user","content":"Below is an approved final execution plan.\n\nDo not re-plan, do not rewrite the plan, do not propose alternatives, do not restate the plan.\nProceed to implement this plan directly.\n\nApproved plan:\n--- plan start ---\n# Fix: `min-similarity-lines=0` should disable duplicate code check\n\n## Context\n\nWhen users set `min-similarity-lines` to `0` in the rcfile, they expect the duplicate code check to be disabled (similar to how flake8 treats `0` as disabling a check). Instead, pylint treats every line as a potential duplicate because the comparison at `similar.py:527` (`if eff_cmn_nb > self.min_lines`) becomes `if eff_cmn_nb > 0`, causing nearly every line to be flagged.\n\n## Changes\n\n### File: `pylint/checkers/similar.py`\n\n1. **`SimilarChecker.close()` (line 831)** — Add early return when `self.min_lines == 0` to skip similarity computation entirely.\n\n2. **`Similar.run()` (line 391)** — Add early return when `self.min_lines == 0` for the standalone CLI path.\n\n3. **Option help text (line 742)** — Update help string to mention that `0` disables the check.\n\n## Verification\n\n1. Create a test file with some duplicate lines, run `pylint --min-similarity-lines=0` and confirm no `R0801` messages are emitted.\n2. Run existing similarity tests to ensure no regressions: `python -m pytest tests/checkers/unittest_similar.py`\n\n--- plan end ---"},"uuid":"d5299646-e6f8-4001-8148-472cb746cfa8","timestamp":"2026-04-08T22:35:40.275Z","permissionMode":"acceptEdits","userType":"external","entrypoint":"sdk-cli","cwd":"/testbed","sessionId":"d59bdd3c-4063-4de4-b12e-269d66496e01","version":"2.1.96","gitBranch":"HEAD"}
++{"parentUuid":"d5299646-e6f8-4001-8148-472cb746cfa8","isSidechain":false,"attachment":{"type":"skill_listing","content":"- update-config: Use this skill to configure the Claude Code harness via settings.json. Automated behaviors (\"from now on when X\", \"each time X\", \"whenever X\", \"before/after X\") require hooks configured in settings.json - the harness executes these, not Claude, so m…\n- simplify: Review changed code for reuse, quality, and efficiency, then fix any issues found.\n- loop: Run a prompt or slash command on a recurring interval (e.g. /loop 5m /foo, defaults to 10m) - When the user wants to set up a recurring task, poll for status, or run something repeatedly on an interval (e.g. \"check the deploy every 5 minutes\", \"keep…\n- claude-api: Build apps with the Claude API or Anthropic SDK.\nTRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_agent_sdk`, or user asks to use Claude API, Anthropic SDKs, or Agent SDK.\nDO NOT TRIGGER when: code imports `openai`/other AI SDK, ge…","skillCount":4,"isInitial":true},"type":"attachment","uuid":"f7d8f6ed-dcbb-4011-8458-08abe518f1eb","timestamp":"2026-04-08T22:35:40.270Z","userType":"external","entrypoint":"sdk-cli","cwd":"/testbed","sessionId":"d59bdd3c-4063-4de4-b12e-269d66496e01","version":"2.1.96","gitBranch":"HEAD"}
++{"parentUuid":"f7d8f6ed-dcbb-4011-8458-08abe518f1eb","isSidechain":false,"type":"assistant","uuid":"22cd3f27-3376-4a4a-892b-e9b54ea79308","timestamp":"2026-04-08T22:35:41.878Z","message":{"id":"d45eedcb-011b-4703-9043-3c7f547308c4","container":null,"model":"<synthetic>","role":"assistant","stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null},"content":[{"type":"text","text":"Failed to authenticate. API Error: 403 {\"error\":{\"message\":\"insufficient balance\",\"type\":\"billing_error\"},\"type\":\"error\"}"}],"context_management":null},"error":"authentication_failed","isApiErrorMessage":true,"userType":"external","entrypoint":"sdk-cli","cwd":"/testbed","sessionId":"d59bdd3c-4063-4de4-b12e-269d66496e01","version":"2.1.96","gitBranch":"HEAD"}
++{"type":"last-prompt","lastPrompt":"Below is an approved final execution plan.  Do not re-plan, do not rewrite the plan, do not propose alternatives, do not restate the plan. Proceed to implement this plan directly.  Approved plan: ---…","sessionId":"d59bdd3c-4063-4de4-b12e-269d66496e01"}

@@ -28,9 +28,9 @@ This project studies **execution variability in Claude Code** when given fixed p
 - **Fixed plan**: Identical instructions for each run of the same plan
 - **Fixed model settings**: Same Claude Code version, model
 - **Isolation**: Each run operates on an independent copy of the repository
-- **Permission mode**: configurable (`acceptEdits` by default; `bypassPermissions` for Docker execution mode)
+- **Permission mode**: configurable (`acceptEdits` by default; `bypassPermissions` for Docker execution)
 - **Validation environment**: Same Docker image reused across runs
-- **Execution mode**: Claude Code can run on the host (default) or inside a Docker container (`--execution-mode docker`)
+- **Unified image**: Official SWE-bench instance image extended with Node.js + Claude CLI (single image for both generation and validation)
 
 ### Measured Variables
 - Execution status (success / timeout / no_changes / partial / failed)
@@ -54,14 +54,11 @@ Each run is classified by combining exit code, diff output, and validation resul
 
 ### Validation Pipeline
 
-Each run's output is validated in a Docker container using a two-step patch application process:
+Each run's output is validated using the official SWE-bench `run_instance()` function inside a Docker container:
 
 1. **Capture Claude's diff**: After Claude Code finishes, all changes (including new untracked files) are captured via `git add -A && git diff --cached` to produce `final.diff`.
-2. **Apply test_patch**: SWE-bench's `test_patch` is applied first to establish the test cases.
-3. **Apply Claude's diff (filtered)**: `final.diff` is applied with any file paths that overlap with `test_patch` excluded. This prevents conflicts when Claude and SWE-bench modify the same test files, while preserving Claude's new files and source code changes.
-4. **Run tests**: The test suite runs inside the Docker image, computing functional and regression scores.
-
-All exclusions are recorded in `validation-results.json` under `diff_exclusions` for audit.
+2. **Official evaluation**: `run_instance()` applies the model patch (`final.diff`), runs `eval.sh` (which applies `test_patch`, executes the test suite, then reverts `test_patch`), and grades results using official repo-specific parsers.
+3. **Report conversion**: The official `report.json` is converted to our `validation-results.json` schema, preserving `correctness.{functional, regression, overall}` scores and per-test pass/fail status.
 
 ## Project Structure
 
@@ -72,11 +69,11 @@ vibe-coding-experiment/
 ├── .env.example              # Required environment variables
 ├── .gitignore
 ├── scripts/
-│   ├── run-experiment.py      # Single-plan runner (supports host & Docker execution, --revalidate)
+│   ├── run-experiment.py      # Single-plan runner (Docker execution, --revalidate)
 │   ├── run-multi-plan.py      # Multi-plan orchestrator (single task)
 │   ├── run-batch.py            # Batch runner across multiple tasks
-│   ├── build-env.py           # Build Docker validation image (+ optional Claude executor image)
-│   ├── check-env.py           # Validate image with test_patch + gold_patch
+│   ├── build-env.py           # Build unified Docker image (official SWE-bench base + Claude CLI)
+│   ├── check-env.py           # Validate image with smoke test
 │   ├── setup-task.py          # Clone repo and set up experiment directory
 │   ├── download-verified.py   # Download SWE-bench Verified dataset
 │   ├── select-tasks.py        # Select 30 representative tasks
@@ -215,68 +212,41 @@ experiments/django__django-11951/
 ### 6. Build and Validate Docker Images
 
 ```bash
-# Build validation image for a specific task
-python scripts/build-env.py experiments/django__django-11951
+# Build unified image for a specific task (official SWE-bench base + Claude CLI)
+python scripts/build-env.py experiments/django__django-11951 --use-official-base
 
-# Also build a Claude-enabled executor image (for Docker execution mode)
-python scripts/build-env.py experiments/django__django-11951 --with-claude
+# Force rebuild all layers
+python scripts/build-env.py experiments/django__django-11951 --use-official-base --rebuild
 
-# Validate the environment
-python scripts/check-env.py experiments/django__django-11951 --image swe-env:django-django-11951
+# Validate the environment (smoke test: image exists + package importable)
+python scripts/check-env.py experiments/django__django-11951 --image claude-swe-env:django-django-11951
 ```
 
-Two Docker images are involved:
+A single unified Docker image serves both Claude Code execution and test validation:
 
 | Image | Tag format | Purpose | Built by |
 |-------|-----------|---------|----------|
-| **Validation image** | `swe-env:<task>` | Isolated test runner | `build-env.py` |
-| **Executor image** | `claude-executor:<task>` | Claude Code execution inside Docker | `build-env.py --with-claude` |
+| **Unified image** | `claude-swe-env:<task>` | Claude Code execution + official SWE-bench validation | `build-env.py --use-official-base` |
 
-The executor image layers Node.js + Claude CLI on top of the validation image, so Claude has access to the same project dependencies when running inside the container.
+The unified image is built using the official SWE-bench 3-tier hierarchy (base → env → instance), then layers Node.js + Claude CLI on top. It is also tagged with the official image name (`sweb.eval.arm64.<task>:latest`) so `run_instance()` finds it without rebuilding.
 
-The env check runs a two-phase validation:
-
-| Phase | Patches Applied | Expected Results |
-|-------|----------------|-----------------|
-| **test_patch_only** | test_patch | fail_to_pass → FAIL, pass_to_pass → PASS |
-| **test_patch_plus_gold_patch** | test_patch + gold_patch | all tests → PASS |
-
-Phase 1 confirms the test infrastructure works and correctly detects the bug. Phase 2 confirms the gold patch fixes it.
-
-**Status levels:**
-
-| Status | Meaning | Action |
-|--------|---------|--------|
-| `pass` | Both phases passed | Proceed to experiments |
-| `fail` | Any phase failed | Fix Docker image before running experiments |
-
-On failure, the script generates diagnostic outputs:
-- `env-check.json` — full structured results
-- `env-diagnostic.md` — human-readable report with test output
-- `env-fix-prompt.md` — copy-paste prompt for Claude Code to fix the Docker image
+The env check verifies:
+- Docker image exists (auto-builds if missing)
+- Main package is importable inside the container (smoke test)
 
 ### 7. Run Experiments
 
-#### Execution Modes
-
-Claude Code can run in two modes:
-
-| Mode | Flag | Description |
-|------|------|-------------|
-| **Host** (default) | `--execution-mode host` | Claude Code runs directly on the host machine |
-| **Docker** | `--execution-mode docker` | Claude Code runs inside a Docker container with project dependencies |
-
-In Docker mode, the executor image is auto-built if missing. The API key is passed via a temporary `--env-file` (not exposed in `ps`). Resource limits can be set with `--docker-cpus` and `--docker-memory`.
+Claude Code runs inside a Docker container using the unified image. The API key (`ANTHROPIC_API_KEY`) is passed via a temporary env file (not exposed in `ps`). Resource limits can be set with `--docker-cpus` and `--docker-memory`.
 
 #### Single task (multi-plan)
 
 ```bash
-# Run all plans for one task, 5 runs each (host mode)
+# Run all plans for one task, 5 runs each
 python scripts/run-multi-plan.py experiments/django__django-11951 --runs 5
 
-# Run in Docker mode (Claude executes inside container with full deps)
+# Run with resource limits
 python scripts/run-multi-plan.py experiments/django__django-11951 --runs 5 \
-  --execution-mode docker --claude-permission-mode bypassPermissions
+  --claude-permission-mode bypassPermissions --docker-cpus 2 --docker-memory 4g
 ```
 
 #### Batch (all tasks)
@@ -288,9 +258,8 @@ python scripts/run-batch.py --dry-run --runs 5
 # Run all tasks with 5 plans x 5 runs
 python scripts/run-batch.py --runs 5
 
-# Run in Docker mode with resource limits
+# Run with resource limits
 python scripts/run-batch.py --runs 5 \
-  --execution-mode docker \
   --claude-permission-mode bypassPermissions \
   --docker-cpus 2 --docker-memory 4g
 
@@ -301,11 +270,10 @@ python scripts/run-batch.py --runs 5 --only django__django-11951 sympy__sympy-12
 python scripts/run-batch.py --runs 5 --rebuild-env
 ```
 
-#### CLI Reference for Execution Mode
+#### CLI Reference
 
 | Flag | Values | Default | Description |
 |------|--------|---------|-------------|
-| `--execution-mode` | `host`, `docker` | `host` | Where Claude Code runs |
 | `--claude-permission-mode` | any valid mode | `acceptEdits` | Permission mode for Claude Code |
 | `--docker-cpus` | e.g. `2` | none | CPU limit for container |
 | `--docker-memory` | e.g. `4g` | none | Memory limit for container |
@@ -329,14 +297,14 @@ After batch execution, check:
 
 ### 9. Revalidate Existing Runs
 
-If the validation pipeline is fixed (e.g., diff filtering bug), you can re-run validation for all existing runs without re-running Claude:
+If the validation pipeline is updated, you can re-run validation for all existing runs without re-running Claude:
 
 ```bash
 # Revalidate all plans for one task
 for plan in plan-01 plan-02 plan-03 plan-04 plan-05; do
   python scripts/run-experiment.py experiments/django__django-11951 \
     --revalidate \
-    --validation-image swe-env:django-django-11951 \
+    --validation-image claude-swe-env:django-django-11951 \
     --runs-dir experiments/django__django-11951/results/$plan/runs \
     --analysis-dir experiments/django__django-11951/results/$plan/analysis
 done
@@ -346,7 +314,7 @@ python scripts/run-experiment.py experiments/django__django-11951 \
   --runs 0 --plan-file experiments/django__django-11951/plans/plan-01.md \
   --runs-dir experiments/django__django-11951/results/plan-01/runs \
   --analysis-dir experiments/django__django-11951/results/plan-01/analysis \
-  --validation-image swe-env:django-django-11951
+  --validation-image claude-swe-env:django-django-11951
 ```
 
 ### Resume Semantics
@@ -363,8 +331,12 @@ Archived results are kept alongside the current `results/` directory with a desc
 
 | Directory | Mode | Tasks | Plans x Runs | Date |
 |-----------|------|-------|-------------|------|
-| `results/` | host, `acceptEdits` | django\_\_django-11951, pytest-dev\_\_pytest-7490 | 5 plans x 5 runs each | 2026-04-02 |
+| `results/` (batch 2) | Docker, `bypassPermissions` | sympy\_\_sympy-12481, scikit-learn\_\_scikit-learn-14053, pylint-dev\_\_pylint-4970 | 5 plans x 5 runs each | 2026-04-08 |
+| `results/` (batch 1) | host, `acceptEdits` | django\_\_django-11951, pytest-dev\_\_pytest-7490 | 5 plans x 5 runs each | 2026-04-02 |
+| `results/` (pilot) | host, `acceptEdits` | exp-001-django-10924 | 6 plans x 10 runs | 2026-03-30 |
 | `results-v1-host/` | host, `acceptEdits` | django\_\_django-11951, pytest-dev\_\_pytest-7490 | 5 plans x 5 runs each | 2026-04-01 |
+
+Note: batch 1 and batch 2 `results/` directories coexist within their respective experiment directories. The pilot experiment uses the legacy naming convention (`exp-001-django-10924`).
 
 To start a new experiment round, archive the current `results/` directory and delete the original so the resume mechanism starts fresh.
 
@@ -390,6 +362,19 @@ All historical runs were re-validated using `--revalidate` mode. Summary data wa
 
 Also affected `scripts/check-env.py`: `evaluate_expectations` now treats `SKIPPED` as acceptable for `pass_to_pass` tests.
 
+**2026-04-07** — Migrated to official SWE-bench `run_instance()` validation:
+
+| Change | Details |
+|--------|---------|
+| **Unified Docker image** | Replaced dual-image architecture (`swe-env` + `claude-executor`) with single unified image built from official SWE-bench 3-tier hierarchy + Node.js + Claude CLI |
+| **Official validation** | Replaced custom validation pipeline (`run_tests_in_docker`, manual `git apply`, diff filtering) with official `run_instance()` from `swebench.harness` |
+| **Removed host mode** | Claude Code now always runs inside Docker container (`--execution-mode` flag removed) |
+| **Mount point** | Changed from `/workspace` to `/testbed` (matches official SWE-bench images) |
+| **`--use-official-base`** | New `build-env.py` flag to build from official SWE-bench base images |
+| **`check-env.py`** | Simplified to image existence check + package import smoke test |
+
+Previous dual-image architecture and custom validation pipeline are available on the `main` branch in git history (pre-commit `ed8e299`).
+
 ## Environment Notes
 
 ### Non-reproducible Tasks
@@ -412,14 +397,15 @@ Also affected `scripts/check-env.py`: `evaluate_expectations` now treats `SKIPPE
 |-------|--------|--------|
 | `matplotlib__matplotlib-24870` env not reproducible | Replaced with `pylint-dev__pylint-4970` | One fewer task in dataset |
 | `--revalidate` overwrites `validation-results.json` without backup | Open — use `git checkout` to recover originals | Risk of data loss if revalidation introduces bugs |
-| No test suite — critical parsing functions (`parse_pytest_output`, `match_pytest_results`, `apply_git_patch`) untested | Open | Silent regressions possible |
 | Hardcoded constants scattered across scripts (`CLAUDE_CODE_VERSION` in `build-env.py`, repo quotas in `select-tasks.py`) | Open | Changes require editing source files |
 | Dependency versions not locked (`requirements.txt` uses `>=` minimums) | Open | Future dependency updates may break scripts |
 | `config/experiment-config.json` exists but is not read by any script | Open | Config template is unused |
+| `transcript.json` and `validation-results.json` contain original host paths (`/Users/...`) | By design — raw session data | Paths are observational, not consumed by scripts |
+| `env-image.txt` tags inconsistent: older experiments use `swe-env:`, newer use `claude-swe-env:` | Open | Does not affect re-running experiments with `--use-official-base` |
 
 ### Security Warning
 
-`--claude-permission-mode bypassPermissions` allows Claude Code to execute arbitrary commands without confirmation. When using `--execution-mode host`, Claude runs directly on your machine with full access. **Only use `bypassPermissions` in Docker execution mode** where the container provides isolation. In host mode, use `acceptEdits` (default) to retain manual approval of file edits.
+`--claude-permission-mode bypassPermissions` allows Claude Code to execute arbitrary commands without confirmation. Claude runs inside a Docker container with project dependencies, but the container has network access. Use `acceptEdits` (default) to retain manual approval of file edits.
 
 The code does **not** use `--allowedTools` to restrict Claude's available tools. If finer-grained control is needed, patch the `claude` command invocation in `run-experiment.py` to add tool restrictions.
 

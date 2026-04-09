@@ -1,5 +1,5 @@
 Experiment: pytest-dev__pytest-7490
-Runs directory: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-05/runs
+Runs directory: experiments/pytest-dev__pytest-7490/results/plan-05/runs
 Generated: 2026-04-03T12:46:17.231197+00:00
 Total runs: 5
 Successful: 0

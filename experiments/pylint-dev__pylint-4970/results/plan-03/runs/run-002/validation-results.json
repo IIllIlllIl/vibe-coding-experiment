@@ -1,0 +1,21 @@
+{
+  "validation_image": "claude-swe-env:pylint-dev-pylint-4970",
+  "patches_applied": {
+    "test_patch": true,
+    "claude_patch": true
+  },
+  "test_results": {
+    "success": true,
+    "fail_to_pass_results": {},
+    "pass_to_pass_results": {},
+    "total_tests": 0,
+    "passed_tests": 0,
+    "failed_tests": 0
+  },
+  "correctness": {
+    "functional": 1.0,
+    "regression": 1.0,
+    "overall": 1.0
+  },
+  "resolved": true
+}

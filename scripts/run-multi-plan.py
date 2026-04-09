@@ -49,12 +49,6 @@ def parse_args() -> argparse.Namespace:
         help="Print what would be done without executing",
     )
     parser.add_argument(
-        "--execution-mode",
-        choices=["host", "docker"],
-        default="host",
-        help="Run Claude Code on host or inside Docker (default: host)",
-    )
-    parser.add_argument(
         "--claude-permission-mode",
         default="acceptEdits",
         help="Permission mode for Claude Code (default: acceptEdits)",
@@ -82,6 +76,13 @@ def load_task(exp_path: Path) -> Dict[str, Any]:
 
 
 def derive_image_tag(exp_path: Path, task: Dict[str, Any]) -> str:
+    # Prefer the tag saved by build-env.py (e.g. claude-swe-env:*)
+    image_file = exp_path / "env-image.txt"
+    if image_file.exists():
+        tag = image_file.read_text().strip()
+        if tag:
+            return tag
+    # Fallback: derive from instance_id
     if task.get("instance_id"):
         suffix = str(task["instance_id"]).replace("/", "-").replace("__", "-")
     else:
@@ -184,7 +185,6 @@ def run_single_plan(
     image_tag: str,
     runs_per_plan: int,
     dry_run: bool,
-    execution_mode: str = "host",
     claude_permission_mode: str = "acceptEdits",
     docker_cpus: Optional[str] = None,
     docker_memory: Optional[str] = None,
@@ -228,8 +228,6 @@ def run_single_plan(
             str(analysis_dir),
             "--validation-image",
             image_tag,
-            "--execution-mode",
-            execution_mode,
             "--claude-permission-mode",
             claude_permission_mode,
         ]
@@ -263,8 +261,6 @@ def run_single_plan(
             str(analysis_dir),
             "--validation-image",
             image_tag,
-            "--execution-mode",
-            execution_mode,
             "--claude-permission-mode",
             claude_permission_mode,
         ]
@@ -501,24 +497,12 @@ def main() -> None:
     print(f"Plans: {', '.join(path.stem for path in plan_files)}")
     print(f"Runs per plan: {args.runs}")
     print(f"Dry run: {args.dry_run}")
-    print(f"Execution mode: {args.execution_mode}")
     print(f"Permission mode: {args.claude_permission_mode}")
-    print(f"Validation image: {image_tag}")
+    print(f"Image: {image_tag}")
     print("=============================")
 
     try:
         ensure_environment(exp_path, image_tag, args.rebuild_env, args.dry_run)
-
-        # Build claude-executor image if in Docker mode
-        if args.execution_mode == "docker" and not args.dry_run:
-            executor_tag = f"claude-executor:{image_tag.split(':', 1)[-1]}" if ":" in image_tag else f"claude-executor:{image_tag}"
-            executor_file = exp_path / "claude-executor-image.txt"
-            if not executor_file.exists() or executor_file.read_text().strip() != executor_tag:
-                run_command(
-                    [sys.executable, str(BUILD_ENV_SCRIPT), str(exp_path), "--with-claude"],
-                    "Build Claude executor image",
-                    dry_run=False,
-                )
 
         execution_results = []
         for plan_path in plan_files:
@@ -529,7 +513,6 @@ def main() -> None:
                     image_tag=image_tag,
                     runs_per_plan=args.runs,
                     dry_run=args.dry_run,
-                    execution_mode=args.execution_mode,
                     claude_permission_mode=args.claude_permission_mode,
                     docker_cpus=args.docker_cpus,
                     docker_memory=args.docker_memory,

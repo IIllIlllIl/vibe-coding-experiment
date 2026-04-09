@@ -9,9 +9,9 @@ It complements `README.md` by making the hidden prerequisites and external depen
 Reconstruct a working environment that can:
 
 1. run the experiment framework locally;
-2. prepare an experiment directory correctly;
-3. build and validate the Docker environment;
-4. execute single-plan or multi-plan runs.
+2. download datasets and set up experiment directories;
+3. build and validate Docker environments;
+4. execute multi-plan runs for individual tasks or batch runs across all tasks.
 
 ---
 
@@ -26,18 +26,23 @@ These are tracked and should be available after cloning this repository:
 - framework code under `scripts/`
 - project documentation under `README.md` and `docs/`
 - example config under `.env.example`
-- experiment metadata and results summaries under `experiments/exp-001-django-10924/`
+- SWE-bench Verified dataset under `datasets/swe-bench-verified/` (7.8 MB, includes `selected-tasks.json`)
+- experiment metadata (`task_full.json`, `base-commit.txt`, `plans/`, `env-image.txt`)
+- experiment results under `experiments/*/results/`
+- comparative analysis under `experiments/*/comparative-analysis/`
 - dependency list in `requirements.txt`
 
 ### Not included in GitHub
 
-These are intentionally ignored and must be recreated manually:
+These are intentionally ignored and must be recreated or obtained separately:
 
-- `datasets/swe-bench/`
-- `experiments/*/repo/`
-- `.env`
-- local virtual environments such as `.venv/`
-- local Claude state under `.claude/`
+- `datasets/swe-bench/` — vendored SWE-bench source (61 MB)
+- `experiments/*/repo/` — target repository snapshots (~2.2 GB total)
+- `.env` — API keys
+- `logs/` — runtime logs
+- `experiments/*/results-v1-host/` — archived earlier experiment rounds
+- local virtual environments (`.venv/`)
+- local Claude state (`.claude/`)
 
 This behavior is defined in `.gitignore`.
 
@@ -47,19 +52,16 @@ This behavior is defined in `.gitignore`.
 
 Install the following on the new device before continuing:
 
-- Python 3.10+ 
-- Git
-- Docker
-- Claude Code CLI (`claude`) installed and available in `PATH`
-- Claude Code authenticated locally
-- network access to GitHub and Python package registries
+- **Python 3.10+**
+- **Git**
+- **Docker** (Docker Desktop, Colima, or other Docker daemon)
+- **Network access** to GitHub, PyPI, and Docker Hub
 
 ## Required accounts / credentials
 
 You need:
 
 - an Anthropic API key for Claude Code workflows
-- local Claude authentication already completed
 
 Create the local environment file:
 
@@ -70,13 +72,14 @@ cp .env.example .env
 Then edit `.env` and set:
 
 ```bash
-ANTHROPIC_API_KEY=...
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 Optional:
 
 ```bash
-OPENAI_API_KEY=...
+OPENAI_API_KEY=...       # for swebench inference
+DOCKER_HOST=unix:///...  # if using Colima on macOS
 ```
 
 ---
@@ -92,8 +95,6 @@ cd vibe-coding-experiment
 
 ## Step 2: Create a Python environment and install dependencies
 
-It is recommended to use a virtual environment.
-
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -102,16 +103,13 @@ pip install -r requirements.txt
 ```
 
 Note:
-- this repository currently uses `requirements.txt` rather than a fully locked dependency file;
-- if exact long-term reproducibility is required, add a lock file in the future.
+- dependencies are loosely pinned (`>=` minimums); for exact reproducibility, generate a lock file (`pip freeze > requirements-lock.txt`) on the source machine.
 
 ---
 
-## Step 3: Recreate the missing SWE-bench dependency
+## Step 3: Recreate the SWE-bench dependency
 
-This repository expects a local clone of SWE-bench under `datasets/swe-bench/`, but that directory is not tracked in GitHub.
-
-Run:
+The framework imports from a local clone of SWE-bench under `datasets/swe-bench/`.
 
 ```bash
 git clone https://github.com/swe-bench/SWE-bench.git datasets/swe-bench
@@ -122,248 +120,168 @@ After cloning, the following should exist:
 - `datasets/swe-bench/README.md`
 - `datasets/swe-bench/swebench/__init__.py`
 
+Note: the SWE-bench Verified dataset (`datasets/swe-bench-verified/`) is already tracked in Git and does not need to be downloaded again.
+
 ---
 
 ## Step 4: Verify framework-level setup
-
-Run:
 
 ```bash
 python scripts/verify-setup.py
 ```
 
 This checks:
+- required directories exist
+- `datasets/swe-bench/` is present
+- Python dependencies are installed
+- sample SWE-bench data can be loaded
 
-- required directories;
-- whether `datasets/swe-bench/` exists;
-- whether Python dependencies are installed;
-- whether the config template exists;
-- whether sample SWE-bench data can be loaded.
-
-If this step fails, fix the reported issue before proceeding.
+Fix any reported issues before proceeding.
 
 ---
 
-## Step 5: Recreate the experiment input repository
+## Step 5: Set up experiment directories
 
-For each experiment, the target repository snapshot under `experiments/<experiment>/repo/` must be created manually.
-
-For the current experiment:
+Each experiment needs a target repository snapshot under `experiments/<instance_id>/repo/`. The `setup-task.py` script automates this:
 
 ```bash
-cd experiments/exp-001-django-10924
-git clone https://github.com/django/django.git repo
-cd repo
-git checkout bceadd2788dc2dad53eba0caae172bd8522fd483
-cd ../../..
+# Set up all 30 selected tasks (clone repos, create directory structure)
+python scripts/setup-task.py --dataset datasets/swe-bench-verified/data.json \
+  $(python -c "import json; ids=[t['instance_id'] for t in json.loads(open('datasets/swe-bench-verified/selected-tasks.json').read())['tasks']]; print(' '.join(ids))")
+
+# Or set up specific tasks only
+python scripts/setup-task.py django__django-11951 sympy__sympy-12481
 ```
 
-Why this is required:
-- the framework reads from `experiments/<experiment>/repo/` when creating each isolated run;
-- this directory is ignored by Git and therefore is not present after cloning the framework repository.
+For each task, this creates:
+- `experiments/<instance_id>/repo/` — target repository at the base commit
+- `experiments/<instance_id>/task_full.json` — SWE-bench task metadata
+- `experiments/<instance_id>/base-commit.txt` — base commit hash
 
-## Files that must already exist in the experiment directory
-
-For `experiments/exp-001-django-10924/`, confirm these files exist:
-
-- `task_full.json`
-- `base-commit.txt`
-- `plan.md` or `plans/plan-XX.md`
-- `metadata.json` if used by your workflow
-
-The repository currently already tracks these metadata files.
+If you only want to review existing results (not re-run experiments), you can skip this step.
 
 ---
 
 ## Step 6: Prepare plan files
 
-### Legacy single-plan mode
+Each task requires 5 plan files under `experiments/<instance_id>/plans/`:
 
-Uses:
-
-- `experiments/exp-001-django-10924/plan.md`
-
-### Multi-plan mode
-
-Uses:
-
-- `experiments/exp-001-django-10924/plans/plan-01.md`
-- `experiments/exp-001-django-10924/plans/plan-02.md`
-- etc.
-
-If you need to initialize the multi-plan structure:
-
-```bash
-cd experiments/exp-001-django-10924
-mkdir -p plans
-cp plan.md plans/plan-01.md
-cd ../..
+```
+experiments/django__django-11951/
+└── plans/
+    ├── plan-01.md
+    ├── plan-02.md
+    ├── plan-03.md
+    ├── plan-04.md
+    └── plan-05.md
 ```
 
-Then add additional plan variants manually if needed.
+Plans are manually created. To generate plan prompts (templates for plan creation):
+
+```bash
+python scripts/make-plan-prompts.py
+```
+
+This writes a `plan-prompt.md` into each experiment directory that lacks one.
 
 ---
 
-## Step 7: Build the reusable Docker validation image
+## Step 7: Build the unified Docker image
 
-Run:
-
-```bash
-python scripts/build-env.py experiments/exp-001-django-10924
-```
-
-What this does:
-
-- reads `task_full.json`;
-- copies `experiments/exp-001-django-10924/repo/` into a temporary Docker build context;
-- builds a reusable validation image;
-- writes the image tag to `experiments/exp-001-django-10924/env-image.txt`.
-
-To also build the Claude-enabled executor image (needed for Docker execution mode):
+The framework uses a single unified Docker image per task that serves both Claude Code execution and official SWE-bench validation. It is built from the official SWE-bench 3-tier hierarchy (base → env → instance) with Node.js + Claude CLI layered on top.
 
 ```bash
-python scripts/build-env.py experiments/exp-001-django-10924 --with-claude
+# Build for a specific task
+python scripts/build-env.py experiments/django__django-11951 --use-official-base
+
+# Force rebuild all layers
+python scripts/build-env.py experiments/django__django-11951 --use-official-base --rebuild
 ```
 
-This creates a second image tagged `claude-executor:<suffix>` that layers Node.js + Claude CLI on top of the validation image. The tag is saved to `claude-executor-image.txt`.
+This writes the image tag to `experiments/<instance_id>/env-image.txt`.
 
 Important:
-- Docker must be running locally;
-- the build depends on the experiment `repo/` directory being present first.
+- Docker must be running locally
+- the build depends on the experiment `repo/` directory being present (Step 5)
+- the build pulls large base images from Docker Hub (~1-5 GB each); allow time and disk space
 
 ---
 
 ## Step 8: Validate the environment
 
-Run:
-
 ```bash
-python scripts/check-env.py experiments/exp-001-django-10924 --image swe-env:django-django-10924
+python scripts/check-env.py experiments/django__django-11951
 ```
 
-Expected output behavior:
-
-- `base + test_patch`: `FAIL_TO_PASS` should fail and `PASS_TO_PASS` should pass;
-- `base + test_patch + gold_patch`: both should pass.
-
-Expected artifact:
-
-- `experiments/exp-001-django-10924/env-check.json`
+This verifies:
+- the Docker image exists (auto-builds if `--use-official-base` is set and image is missing)
+- the target package is importable inside the container (smoke test)
 
 Do not start the main experiment run until this validation passes.
 
 ---
 
-## Step 9: Run the experiment
+## Step 9: Run experiments
 
-### Execution modes
-
-Claude Code can run in two modes:
-
-- **Host mode** (default): Claude Code runs directly on the host. Requires `claude` in PATH.
-- **Docker mode** (`--execution-mode docker`): Claude Code runs inside a Docker container built from the executor image. This gives Claude access to project dependencies (test runners, etc.).
-
-When using Docker mode, the executor image is auto-built if missing. The `ANTHROPIC_API_KEY` is passed via a temporary `--env-file` to avoid exposure in process listings.
-
-### Single-plan mode
-
-Single run (host mode):
+### Single task (multi-plan)
 
 ```bash
-python scripts/run-experiment.py experiments/exp-001-django-10924 \
-  --validation-image swe-env:django-django-10924
+# Run all plans for one task, 5 runs each
+python scripts/run-multi-plan.py experiments/django__django-11951 --runs 5
+
+# Run with resource limits
+python scripts/run-multi-plan.py experiments/django__django-11951 --runs 5 \
+  --claude-permission-mode bypassPermissions --docker-cpus 2 --docker-memory 4g
+
+# Smoke test (1 run, selected plans)
+python scripts/run-multi-plan.py experiments/django__django-11951 --plans 01 02 --runs 1
+
+# Dry run
+python scripts/run-multi-plan.py experiments/django__django-11951 --dry-run
 ```
 
-Single run (Docker mode):
+### Batch (all tasks)
 
 ```bash
-python scripts/run-experiment.py experiments/exp-001-django-10924 \
-  --validation-image swe-env:django-django-10924 \
-  --execution-mode docker --claude-permission-mode bypassPermissions
+# Dry run to preview
+python scripts/run-batch.py --dry-run --runs 5
+
+# Run all tasks
+python scripts/run-batch.py --runs 5
+
+# Run specific tasks only
+python scripts/run-batch.py --runs 5 --only django__django-11951 sympy__sympy-12481
+
+# Force rebuild Docker images
+python scripts/run-batch.py --runs 5 --rebuild-env
 ```
 
-Multiple runs:
-
-```bash
-python scripts/run-experiment.py experiments/exp-001-django-10924 \
-  --validation-image swe-env:django-django-10924 \
-  --runs 10
-```
-
-Dry run:
-
-```bash
-python scripts/run-experiment.py experiments/exp-001-django-10924 --dry-run
-```
-
-With resource limits (Docker mode only):
-
-```bash
-python scripts/run-experiment.py experiments/exp-001-django-10924 \
-  --execution-mode docker --docker-cpus 2 --docker-memory 4g
-```
-
-### Multi-plan mode
-
-Run all plans:
-
-```bash
-python scripts/run-multi-plan.py experiments/exp-001-django-10924
-```
-
-Run in Docker mode:
-
-```bash
-python scripts/run-multi-plan.py experiments/exp-001-django-10924 \
-  --execution-mode docker --claude-permission-mode bypassPermissions
-```
-
-Run selected plans only:
-
-```bash
-python scripts/run-multi-plan.py experiments/exp-001-django-10924 --plans 01 02 03
-```
-
-Smoke test:
-
-```bash
-python scripts/run-multi-plan.py experiments/exp-001-django-10924 --plans 01 02 --runs 1
-```
-
-Dry run:
-
-```bash
-python scripts/run-multi-plan.py experiments/exp-001-django-10924 --plans 01 02 --runs 1 --dry-run
-```
+Claude Code runs inside the Docker container. The API key is passed via a temporary env file (not exposed in process listings).
 
 ---
 
 ## Step 10: Check reconstruction success
 
-A reconstructed environment is considered usable if the following work:
+A reconstructed environment is considered usable if the following all succeed:
 
-1. `python scripts/verify-setup.py`
-2. `python scripts/build-env.py experiments/exp-001-django-10924`
-3. `python scripts/check-env.py experiments/exp-001-django-10924 --image swe-env:django-django-10924`
-4. at least one dry run or one real run of `run-experiment.py` or `run-multi-plan.py`
+1. `python scripts/verify-setup.py` — passes
+2. `python scripts/build-env.py experiments/<task> --use-official-base` — image builds
+3. `python scripts/check-env.py experiments/<task>` — validation passes
+4. at least one dry run of `run-multi-plan.py` completes without error
 
 ---
 
 ## Expected output locations
 
-### Single-plan outputs
+### Per-task (multi-plan)
 
-- `experiments/<name>/runs/run-NNN/`
-- `experiments/<name>/analysis/runs-summary.json`
-- `experiments/<name>/analysis/summary.txt`
+- `experiments/<name>/results/plan-XX/runs/run-NNN/` — per-run artifacts (diff, transcript, validation)
+- `experiments/<name>/results/plan-XX/analysis/runs-summary.json` — per-plan aggregated stats
+- `experiments/<name>/comparative-analysis/comparison-summary.json` — cross-plan comparison
 
-### Multi-plan outputs
+### Batch
 
-- `experiments/<name>/results/plan-XX/runs/run-NNN/`
-- `experiments/<name>/results/plan-XX/analysis/runs-summary.json`
-- `experiments/<name>/results/plan-XX/analysis/summary.txt`
-- `experiments/<name>/comparative-analysis/comparison-summary.json`
-- `experiments/<name>/comparative-analysis/comparison-report.txt`
+- `experiments/batch-summary.json` — all tasks summary
 
 ---
 
@@ -371,8 +289,7 @@ A reconstructed environment is considered usable if the following work:
 
 ### 1. `datasets/swe-bench/` missing
 
-Symptom:
-- `verify-setup.py` fails.
+Symptom: `verify-setup.py` fails; import errors from `swebench` module.
 
 Fix:
 
@@ -382,89 +299,61 @@ git clone https://github.com/swe-bench/SWE-bench.git datasets/swe-bench
 
 ### 2. `experiments/.../repo/` missing
 
-Symptom:
-- `run-experiment.py` or `build-env.py` fails because the source repository is missing.
+Symptom: `build-env.py` or `run-experiment.py` fails because the source repository is missing.
 
-Fix:
-- clone the target project into the experiment directory;
-- checkout the base commit recorded in `base-commit.txt`.
+Fix: run `setup-task.py` (Step 5) to clone and checkout the correct base commit.
 
 ### 3. Docker not running
 
-Symptom:
-- image build or validation fails.
+Symptom: image build or validation fails with connection errors.
 
-Fix:
-- start Docker Desktop or the local Docker daemon.
-
-### 4. Claude CLI not installed or not authenticated
-
-Symptom:
-- experiment execution fails when invoking `claude`.
-
-Fix:
-- install Claude Code CLI;
-- complete local authentication;
-- confirm `claude` is available in `PATH`;
-- if using Docker execution mode (`--execution-mode docker`), the CLI is installed inside the executor image — host CLI is not required.
-
-### 4b. Docker executor image missing
-
-Symptom:
-- `run-experiment.py --execution-mode docker` fails with "Docker execution requires --executor-image".
-
-Fix:
+Fix: start Docker Desktop or the local Docker daemon. If using Colima:
 
 ```bash
-python scripts/build-env.py experiments/exp-001-django-10924 --with-claude
+colima start
+export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock
 ```
 
-Or let the script auto-build by ensuring `env-image.txt` exists (the executor image is derived from it).
+### 4. Docker image tag mismatch
 
-### 4c. ANTHROPIC_API_KEY not set for Docker mode
+Symptom: script reports image not found.
 
-Symptom:
-- Docker execution fails with "ANTHROPIC_API_KEY environment variable is not set".
-
-Fix:
-- export the key before running:
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-```
+Fix: check `env-image.txt` in the experiment directory. Older experiments use `swe-env:` prefix; newer ones use `claude-swe-env:`. The `--use-official-base` flag builds the new unified image.
 
 ### 5. `.env` not configured
 
-Symptom:
-- Claude-related or API-dependent actions fail.
+Symptom: Claude-related or API-dependent actions fail.
 
 Fix:
 
 ```bash
 cp .env.example .env
+# Edit and set ANTHROPIC_API_KEY
 ```
 
-Then fill the required keys.
+### 6. Python version incompatibility
+
+Symptom: import errors or syntax errors in scripts.
+
+Fix: ensure Python 3.10+ is active (`python3 --version`).
 
 ---
 
 ## Reproducibility limitations
 
-This project is reconstructable, but not yet perfectly self-contained.
+This project is reconstructable, but not perfectly self-contained:
 
-Current limitations:
+1. some required inputs (`repo/`, `datasets/swe-bench/`) are excluded from GitHub and must be recreated manually;
+2. Python dependencies are not fully locked (`>=` minimums, no lock file);
+3. successful reconstruction depends on external services (Docker Hub, PyPI, GitHub);
+4. Docker image contents are reproducible from scripts, but rely on network package installs during build;
+5. Claude Code execution is inherently non-deterministic — re-running the same plan produces different results (that is the research question);
+6. experiment results include `transcript.json` files that can be large (hundreds of MB total across all tasks).
 
-1. some required inputs are excluded from GitHub and must be recreated manually;
-2. Python dependencies are not fully locked;
-3. successful reconstruction depends on external services and local authentication state;
-4. Docker image contents are reproducible from scripts, but still rely on network package installs during build.
-
-If stricter reproducibility is needed in the future, consider adding:
-
-- a fully pinned lock file;
+For stricter reproducibility, consider adding:
+- a fully pinned lock file (`pip freeze > requirements-lock.txt`);
 - explicit Python version pinning;
-- a bootstrap script for all setup steps;
-- a dedicated section in `README.md` linking to this document.
+- a bootstrap script (`setup.sh`) for all setup steps;
 
 ---
 
@@ -476,15 +365,14 @@ Use this checklist on a fresh device:
 - [ ] create and activate `.venv`
 - [ ] install `requirements.txt`
 - [ ] copy `.env.example` to `.env`
-- [ ] set `ANTHROPIC_API_KEY`
-- [ ] install and authenticate Claude Code CLI (required for host mode)
+- [ ] set `ANTHROPIC_API_KEY` in `.env`
 - [ ] clone SWE-bench into `datasets/swe-bench/`
-- [ ] clone the target repo into `experiments/exp-001-django-10924/repo/`
-- [ ] checkout the required base commit
-- [ ] run `python scripts/verify-setup.py`
-- [ ] run `python scripts/build-env.py experiments/exp-001-django-10924`
-- [ ] run `python scripts/check-env.py experiments/exp-001-django-10924 --image swe-env:django-django-10924`
-- [ ] *(optional)* run `python scripts/build-env.py experiments/exp-001-django-10924 --with-claude` for Docker execution mode
-- [ ] run a dry-run or real experiment command (host or Docker mode)
+- [ ] run `python scripts/verify-setup.py` — passes
+- [ ] run `python scripts/setup-task.py <instance_id>` for desired tasks
+- [ ] create plan files in `experiments/<instance_id>/plans/`
+- [ ] run `python scripts/build-env.py experiments/<instance_id> --use-official-base`
+- [ ] run `python scripts/check-env.py experiments/<instance_id>` — passes
+- [ ] run a dry-run: `python scripts/run-multi-plan.py experiments/<instance_id> --dry-run`
+- [ ] run the actual experiment
 
 If all boxes can be checked on a new machine, the project has been successfully reconstructed.

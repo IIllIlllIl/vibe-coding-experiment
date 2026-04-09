@@ -1,0 +1,49 @@
+Experiment: pylint-dev__pylint-4970
+Runs directory: experiments/pylint-dev__pylint-4970/results/plan-03/runs
+Generated: 2026-04-08T22:34:41.175645+00:00
+Total runs: 5
+Successful: 5
+Failed: 0
+
+Status Breakdown:
+  success: 3
+  success_with_error: 2
+
+Files Changed Statistics:
+  Min: 3
+  Max: 5
+  Avg: 4.60
+  Range: 2
+
+Diff Size Statistics (bytes):
+  Min: 9184
+  Max: 203331
+  Avg: 156850.00
+  Range: 194147
+
+Duration Statistics (seconds):
+  Min: 8.56
+  Max: 144.07
+  Avg: 92.97
+  Range: 135.51
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=success, duration=124.8s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=9559, output_tokens=2110, cache_read_input_tokens=691712, tokens=11669
+Run 002: status=success, duration=104.7s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=7952, output_tokens=1450, cache_read_input_tokens=595200, tokens=9402
+Run 003: status=success, duration=144.1s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=9678, output_tokens=2385, cache_read_input_tokens=873600, tokens=12063
+Run 004: status=success_with_error, duration=82.7s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=8493, output_tokens=1636, cache_read_input_tokens=651712, tokens=10129
+Run 005: status=success_with_error, duration=8.6s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=0, output_tokens=0, cache_read_input_tokens=0, tokens=0
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 5
+Average functional score: 100.00%
+Average regression score: 100.00%
+Average overall score: 100.00%
+Perfect runs (100% overall): 5
+Runs with test file created: 0

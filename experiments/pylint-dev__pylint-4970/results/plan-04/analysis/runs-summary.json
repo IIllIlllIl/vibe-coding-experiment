@@ -1,0 +1,135 @@
+{
+  "experiment": "pylint-dev__pylint-4970",
+  "runs_directory": "experiments/pylint-dev__pylint-4970/results/plan-04/runs",
+  "analysis_directory": "experiments/pylint-dev__pylint-4970/results/plan-04/analysis",
+  "generated_at": "2026-04-08T22:35:45.681251+00:00",
+  "total_runs": 5,
+  "successful_runs": 5,
+  "failed_runs": 0,
+  "status_breakdown": {
+    "success_with_error": 5
+  },
+  "run_statuses": [
+    {
+      "run_id": 1,
+      "status": "success_with_error",
+      "exit_code": 1,
+      "start_time": "2026-04-08T22:34:42.571406+00:00",
+      "end_time": "2026-04-08T22:34:49.405303+00:00",
+      "changed_files_count": 3,
+      "diff_size": 7202,
+      "error": "WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested\n"
+    },
+    {
+      "run_id": 2,
+      "status": "success_with_error",
+      "exit_code": 1,
+      "start_time": "2026-04-08T22:34:54.447751+00:00",
+      "end_time": "2026-04-08T22:35:02.800723+00:00",
+      "changed_files_count": 3,
+      "diff_size": 7202,
+      "error": "WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested\n"
+    },
+    {
+      "run_id": 3,
+      "status": "success_with_error",
+      "exit_code": 1,
+      "start_time": "2026-04-08T22:35:07.484328+00:00",
+      "end_time": "2026-04-08T22:35:15.611525+00:00",
+      "changed_files_count": 3,
+      "diff_size": 7202,
+      "error": "WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested\n"
+    },
+    {
+      "run_id": 4,
+      "status": "success_with_error",
+      "exit_code": 1,
+      "start_time": "2026-04-08T22:35:20.303210+00:00",
+      "end_time": "2026-04-08T22:35:28.818448+00:00",
+      "changed_files_count": 3,
+      "diff_size": 7202,
+      "error": "WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested\n"
+    },
+    {
+      "run_id": 5,
+      "status": "success_with_error",
+      "exit_code": 1,
+      "start_time": "2026-04-08T22:35:33.934496+00:00",
+      "end_time": "2026-04-08T22:35:42.152836+00:00",
+      "changed_files_count": 3,
+      "diff_size": 7202,
+      "error": "WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested\n"
+    }
+  ],
+  "statistics": {
+    "files_changed": {
+      "min": 3,
+      "max": 3,
+      "avg": 3.0,
+      "range": 0
+    },
+    "diff_size_bytes": {
+      "min": 7202,
+      "max": 7202,
+      "avg": 7202.0,
+      "range": 0
+    }
+  },
+  "durations_seconds": {
+    "min": 6.833897,
+    "max": 8.515238,
+    "avg": 8.0095288,
+    "range": 1.6813409999999998
+  },
+  "tokens": {
+    "average_input_tokens": 0.0,
+    "average_output_tokens": 0.0,
+    "average_cache_read_input_tokens": 0.0,
+    "average_total_tokens": 0.0
+  },
+  "validation": {
+    "total_validated": 5,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 5,
+    "test_file_created_count": 0,
+    "per_run": [
+      {
+        "run_id": 1,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 2,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 3,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 4,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 5,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      }
+    ]
+  }
+}

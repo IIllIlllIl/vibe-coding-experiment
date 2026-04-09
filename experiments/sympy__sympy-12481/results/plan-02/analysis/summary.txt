@@ -1,0 +1,48 @@
+Experiment: sympy__sympy-12481
+Runs directory: experiments/sympy__sympy-12481/results/plan-02/runs
+Generated: 2026-04-08T18:07:10.615910+00:00
+Total runs: 5
+Successful: 5
+Failed: 0
+
+Status Breakdown:
+  success: 5
+
+Files Changed Statistics:
+  Min: 5
+  Max: 5
+  Avg: 5.00
+  Range: 0
+
+Diff Size Statistics (bytes):
+  Min: 150270
+  Max: 233173
+  Avg: 179012.20
+  Range: 82903
+
+Duration Statistics (seconds):
+  Min: 74.05
+  Max: 218.83
+  Avg: 125.12
+  Range: 144.78
+
+======================================================================
+RUN DETAILS
+======================================================================
+
+Run 001: status=success, duration=109.6s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=26473, output_tokens=1974, cache_read_input_tokens=501504, tokens=28447
+Run 002: status=success, duration=218.8s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=8716, output_tokens=4936, cache_read_input_tokens=969408, tokens=13652
+Run 003: status=success, duration=74.0s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=20849, output_tokens=1299, cache_read_input_tokens=342208, tokens=22148
+Run 004: status=success, duration=118.2s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=22066, output_tokens=1539, cache_read_input_tokens=421312, tokens=23605
+Run 005: status=success, duration=104.9s, FAIL_TO_PASS=N/A, PASS_TO_PASS=N/A, input_tokens=21984, output_tokens=1585, cache_read_input_tokens=416128, tokens=23569
+
+======================================================================
+VALIDATION SUMMARY
+======================================================================
+
+Total validated runs: 5
+Average functional score: 100.00%
+Average regression score: 100.00%
+Average overall score: 100.00%
+Perfect runs (100% overall): 5
+Runs with test file created: 0

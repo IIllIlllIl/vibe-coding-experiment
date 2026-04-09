@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """
 Build a reusable Docker validation image for an experiment.
-Usage: python scripts/build-env.py <experiment_dir> [--tag TAG] [--with-claude]
 
-With --with-claude, also builds a second image (claude-executor-<suffix>)
-that extends the validation image with Node.js and Claude CLI installed.
+Modes:
+  --use-official-base    Build from official SWE-bench images (3-tier: base → env → instance)
+                         with Node.js + Claude CLI layered on top. Produces a unified image
+                         suitable for both Claude code generation and validation via run_instance().
+
+  (default)              Build a simple python-slim based image (legacy mode).
+
+  --with-claude          (legacy mode only) Also build a Claude-enabled executor image.
 """
 
 import argparse
 import json
+import logging
+import platform
 import shlex
 import shutil
 import subprocess
@@ -27,7 +34,7 @@ APT_PACKAGES = [
     "libsasl2-dev",
 ]
 
-CLAUDE_CODE_VERSION = "@anthropic-ai/claude-code@1.0.6"
+CLAUDE_CODE_VERSION = "@anthropic-ai/claude-code@2.1.96"
 
 
 def parse_args():
@@ -38,6 +45,17 @@ def parse_args():
         "--with-claude",
         action="store_true",
         help="Also build a Claude-enabled executor image on top of the validation image",
+    )
+    parser.add_argument(
+        "--use-official-base",
+        action="store_true",
+        help="Build from official SWE-bench images (3-tier) with Node.js + Claude CLI. "
+             "Produces a unified image for both generation and validation.",
+    )
+    parser.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="Force rebuild all layers even if they exist",
     )
     return parser.parse_args()
 
@@ -161,9 +179,9 @@ def derive_executor_tag(validation_tag: str) -> str:
     return f"claude-executor:{suffix}"
 
 
-def build_claude_dockerfile(validation_tag: str) -> str:
-    """Dockerfile that layers Node.js + Claude CLI on top of the validation image."""
-    return f'''FROM {validation_tag}
+def build_claude_dockerfile(base_image: str) -> str:
+    """Dockerfile that layers Node.js + Claude CLI on top of any base image."""
+    return f'''FROM {base_image}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -174,9 +192,125 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && npm install -g {CLAUDE_CODE_VERSION}
 
-WORKDIR /workspace
+WORKDIR /testbed
 CMD ["bash"]
 '''
+
+
+def build_official_unified_image(exp_path: Path, force_rebuild: bool = False, tag_override: str = None):
+    """Build unified image using official SWE-bench 3-tier hierarchy + Claude CLI layer.
+
+    Produces:
+      - sweb.eval.arm64.<instance_id>:latest  (official instance image)
+      - claude-swe-env:<instance_id>           (unified: instance + Node.js + Claude)
+
+    The unified image is also tagged with the official name so run_instance()
+    can find it without rebuilding.
+    """
+    # Import harness modules (requires ensure_swebench_importable)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from swebench_adapter import ensure_swebench_importable
+    ensure_swebench_importable()
+
+    import docker as docker_sdk
+    from swebench.harness.docker_build import build_env_images, build_instance_image
+    from swebench.harness.test_spec.test_spec import make_test_spec
+
+    task = load_task(exp_path)
+    instance_id = task.get("instance_id", exp_path.name)
+    # Official SWE-bench images use x86_64 conda packages.
+    # On Apple Silicon, Docker runs them via QEMU emulation.
+    arch = "x86_64"
+
+    # Build the SWEbenchInstance dict from task_full.json
+    # task_full.json already has all the required fields
+    instance = dict(task)  # copy all fields
+
+    # Ensure FAIL_TO_PASS and PASS_TO_PASS are JSON strings (as expected by make_test_spec)
+    for key in ("FAIL_TO_PASS", "PASS_TO_PASS"):
+        val = instance.get(key)
+        if isinstance(val, list):
+            instance[key] = json.dumps(val)
+
+    # Create TestSpec
+    test_spec = make_test_spec(instance, arch=arch)
+
+    official_tag = test_spec.instance_image_key  # e.g. sweb.eval.arm64.pylint-dev__pylint-4970:latest
+    unified_tag = tag_override or f"claude-swe-env:{instance_id.replace('/', '-').replace('__', '-')}"
+
+    print(f"  Instance ID: {instance_id}")
+    print(f"  Architecture: {arch}")
+    print(f"  Official image: {official_tag}")
+    print(f"  Unified image: {unified_tag}")
+
+    client = docker_sdk.from_env()
+    logger = None  # build_instance_image accepts None
+
+    # Step 1: Build base + env images (shared across instances)
+    # Pass test_spec (not raw instance) so arch is preserved throughout
+    print("\n=== Building base + env images ===")
+    build_env_images(
+        dataset=[test_spec],
+        client=client,
+        namespace=None,
+        force_rebuild=force_rebuild,
+        max_workers=1,
+        instance_image_tag="latest",
+        env_image_tag="latest",
+    )
+
+    # Step 2: Build instance image (repo at base_commit, dependencies installed)
+    print("\n=== Building instance image ===")
+    build_instance_image(
+        test_spec=test_spec,
+        client=client,
+        logger=logger,
+        nocache=force_rebuild,
+    )
+    print(f"  Instance image ready: {official_tag}")
+
+    # Step 3: Check if unified image already exists
+    unified_exists = bool(client.images.list(name=unified_tag))
+
+    # Check if the unified image was built from the same instance image
+    # by comparing creation timestamps. If instance image was rebuilt,
+    # we should rebuild the unified layer too.
+    if unified_exists and not force_rebuild:
+        inst_img = client.images.get(official_tag)
+        uni_img = client.images.get(unified_tag)
+        if uni_img.attrs["Created"] >= inst_img.attrs["Created"]:
+            print(f"\n  Unified image already up-to-date: {unified_tag}")
+            # Still ensure it has the official tag alias
+            uni_img.tag(official_tag.split(":")[0], official_tag.split(":")[1])
+        else:
+            unified_exists = False  # Force rebuild
+
+    if not unified_exists:
+        # Step 4: Layer Node.js + Claude CLI on top
+        print("\n=== Building unified image (Node.js + Claude CLI) ===")
+        dockerfile = build_claude_dockerfile(official_tag)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            (tmp_path / "Dockerfile").write_text(dockerfile)
+
+            subprocess.run(
+                ["docker", "build", "-t", unified_tag, str(tmp_path)],
+                check=True,
+            )
+
+        # Tag the unified image with the official name too,
+        # so run_instance() finds it and skips rebuilding.
+        uni_img = client.images.get(unified_tag)
+        repo, ttag = official_tag.split(":", 1)
+        uni_img.tag(repo, ttag)
+        print(f"  Also tagged as: {official_tag}")
+
+    # Save tags to experiment directory
+    (exp_path / "env-image.txt").write_text(unified_tag + "\n")
+    (exp_path / "claude-executor-image.txt").write_text(unified_tag + "\n")
+    print(f"\n  Saved image tag to env-image.txt: {unified_tag}")
+    print(unified_tag)
 
 
 def main():
@@ -186,6 +320,11 @@ def main():
         print(f"Error: experiment directory not found: {exp_path}")
         sys.exit(1)
 
+    if args.use_official_base:
+        build_official_unified_image(exp_path, force_rebuild=args.rebuild, tag_override=args.tag)
+        return
+
+    # Legacy mode: build simple python-slim based image
     task = load_task(exp_path)
     image_tag = args.tag or derive_image_tag(exp_path, task)
     python_version = detect_python_version(task)

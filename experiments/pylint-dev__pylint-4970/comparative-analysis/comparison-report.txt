@@ -1,0 +1,62 @@
+Experiment: pylint-dev__pylint-4970
+Generated: 2026-04-08T22:36:45.375161+00:00
+
+Per-plan summary:
+- plan-01
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=89438
+  changed_files_range=0
+  duration_range=1072.23s
+  avg_overall_validation=100.00%
+  variability_score=89538
+
+- plan-02
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=55698
+  changed_files_range=0
+  duration_range=2202.15s
+  avg_overall_validation=100.00%
+  variability_score=55798
+
+- plan-03
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=194147
+  changed_files_range=2
+  duration_range=135.51s
+  avg_overall_validation=100.00%
+  variability_score=194349
+
+- plan-04
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=0
+  changed_files_range=0
+  duration_range=1.68s
+  avg_overall_validation=100.00%
+  variability_score=100
+
+- plan-05
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=7852
+  changed_files_range=2
+  duration_range=8.13s
+  avg_overall_validation=100.00%
+  variability_score=7954
+
+Cross-plan comparison:
+- highest_success_rate: plan-01
+- lowest_success_rate: plan-01
+- highest_overall_validation: plan-01
+- lowest_overall_validation: plan-01
+- most_variable_diff_size: plan-03
+- least_variable_diff_size: plan-04
+- most_variable_changed_files: plan-03
+- least_variable_changed_files: plan-01
+- most_variable_duration: plan-02
+- least_variable_duration: plan-04
+- most_variable_overall: plan-03
+- least_variable_overall: plan-04

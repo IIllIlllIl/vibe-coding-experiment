@@ -1,0 +1,62 @@
+Experiment: scikit-learn__scikit-learn-14053
+Generated: 2026-04-08T20:31:16.287799+00:00
+
+Per-plan summary:
+- plan-01
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=41578
+  changed_files_range=0
+  duration_range=81.18s
+  avg_overall_validation=100.00%
+  variability_score=41678
+
+- plan-02
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=27303
+  changed_files_range=0
+  duration_range=920.27s
+  avg_overall_validation=100.00%
+  variability_score=27403
+
+- plan-03
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=48118
+  changed_files_range=1
+  duration_range=102.41s
+  avg_overall_validation=100.00%
+  variability_score=48219
+
+- plan-04
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=39171
+  changed_files_range=1
+  duration_range=157.11s
+  avg_overall_validation=100.00%
+  variability_score=39272
+
+- plan-05
+  success_rate=100.00%
+  perfect_validation_rate=100.00%
+  diff_range=26296
+  changed_files_range=0
+  duration_range=119.13s
+  avg_overall_validation=100.00%
+  variability_score=26396
+
+Cross-plan comparison:
+- highest_success_rate: plan-01
+- lowest_success_rate: plan-01
+- highest_overall_validation: plan-01
+- lowest_overall_validation: plan-01
+- most_variable_diff_size: plan-03
+- least_variable_diff_size: plan-05
+- most_variable_changed_files: plan-03
+- least_variable_changed_files: plan-01
+- most_variable_duration: plan-02
+- least_variable_duration: plan-01
+- most_variable_overall: plan-03
+- least_variable_overall: plan-05

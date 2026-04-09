@@ -194,17 +194,17 @@
 ## How to Fix
 
 1. Read the diagnostic output above to understand what's failing
-2. Check the Dockerfile: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870/env-build/Dockerfile
-3. Check the repo source: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870/repo
+2. Check the Dockerfile: experiments/matplotlib__matplotlib-24870/env-build/Dockerfile
+3. Check the repo source: experiments/matplotlib__matplotlib-24870/repo
 4. Common fixes:
    - Missing dependencies: add pip install to Dockerfile
    - Wrong Python version: update FROM line in Dockerfile
    - Test framework issues: ensure pytest/django test runner is properly configured
    - Import errors: install missing packages
 5. After fixing, rebuild the image:
-   python scripts/build-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870 --rebuild
+   python scripts/build-env.py experiments/matplotlib__matplotlib-24870 --rebuild
 6. Re-run env check:
-   python scripts/check-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870 --image swe-env:matplotlib-matplotlib-24870
+   python scripts/check-env.py experiments/matplotlib__matplotlib-24870 --image swe-env:matplotlib-matplotlib-24870
 
 ## Claude Code Fix Prompt
 
@@ -220,13 +220,13 @@ The environment check failed:
   test_patch_plus_gold_patch: exit_code=1, 64 passed, 2 failed
 
 Key issues to investigate:
-1. Check the test output in /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870/env-check.json for errors
-2. Check if the Dockerfile at /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870/env-build/Dockerfile has correct dependencies
+1. Check the test output in experiments/matplotlib__matplotlib-24870/env-check.json for errors
+2. Check if the Dockerfile at experiments/matplotlib__matplotlib-24870/env-build/Dockerfile has correct dependencies
 3. The test framework is: pytest
 
 After fixing, rebuild and verify:
-  python scripts/build-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870
-  python scripts/check-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870 --image swe-env:matplotlib-matplotlib-24870
+  python scripts/build-env.py experiments/matplotlib__matplotlib-24870
+  python scripts/check-env.py experiments/matplotlib__matplotlib-24870 --image swe-env:matplotlib-matplotlib-24870
 
-Save this plan to /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/matplotlib__matplotlib-24870/plans/env-fix-plan.md
+Save this plan to experiments/matplotlib__matplotlib-24870/plans/env-fix-plan.md
 ---

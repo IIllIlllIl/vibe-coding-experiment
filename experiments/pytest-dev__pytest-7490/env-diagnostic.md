@@ -196,17 +196,17 @@
 ## How to Fix
 
 1. Read the diagnostic output above to understand what's failing
-2. Check the Dockerfile: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/env-build/Dockerfile
-3. Check the repo source: /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/repo
+2. Check the Dockerfile: experiments/pytest-dev__pytest-7490/env-build/Dockerfile
+3. Check the repo source: experiments/pytest-dev__pytest-7490/repo
 4. Common fixes:
    - Missing dependencies: add pip install to Dockerfile
    - Wrong Python version: update FROM line in Dockerfile
    - Test framework issues: ensure pytest/django test runner is properly configured
    - Import errors: install missing packages
 5. After fixing, rebuild the image:
-   python scripts/build-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490 --rebuild
+   python scripts/build-env.py experiments/pytest-dev__pytest-7490 --rebuild
 6. Re-run env check:
-   python scripts/check-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490 --image swe-env:pytest-dev-pytest-7490
+   python scripts/check-env.py experiments/pytest-dev__pytest-7490 --image swe-env:pytest-dev-pytest-7490
 
 ## Claude Code Fix Prompt
 
@@ -221,13 +221,13 @@ The environment check failed:
   test_patch_only: exit_code=1, 73 passed, 2 failed
 
 Key issues to investigate:
-1. Check the test output in /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/env-check.json for errors
-2. Check if the Dockerfile at /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/env-build/Dockerfile has correct dependencies
+1. Check the test output in experiments/pytest-dev__pytest-7490/env-check.json for errors
+2. Check if the Dockerfile at experiments/pytest-dev__pytest-7490/env-build/Dockerfile has correct dependencies
 3. The test framework is: pytest
 
 After fixing, rebuild and verify:
-  python scripts/build-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490
-  python scripts/check-env.py /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490 --image swe-env:pytest-dev-pytest-7490
+  python scripts/build-env.py experiments/pytest-dev__pytest-7490
+  python scripts/check-env.py experiments/pytest-dev__pytest-7490 --image swe-env:pytest-dev-pytest-7490
 
-Save this plan to /Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/plans/env-fix-plan.md
+Save this plan to experiments/pytest-dev__pytest-7490/plans/env-fix-plan.md
 ---

@@ -1,7 +1,7 @@
 {
   "experiment": "pytest-dev__pytest-7490",
-  "runs_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-04/runs",
-  "analysis_directory": "/Users/taoran.wang/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/pytest-dev__pytest-7490/results/plan-04/analysis",
+  "runs_directory": "experiments/pytest-dev__pytest-7490/results/plan-04/runs",
+  "analysis_directory": "experiments/pytest-dev__pytest-7490/results/plan-04/analysis",
   "generated_at": "2026-04-03T12:46:17.007470+00:00",
   "total_runs": 5,
   "successful_runs": 0,

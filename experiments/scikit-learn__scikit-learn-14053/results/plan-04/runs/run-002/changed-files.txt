@@ -1,0 +1,5 @@
+.claude.json
+.claude/backups/.claude.json.backup.1775678749339
+.claude/projects/-testbed/14037772-301a-4553-8887-bdcd6c890d3d.jsonl
+sklearn/tree/export.py
+sklearn/tree/tests/test_export.py

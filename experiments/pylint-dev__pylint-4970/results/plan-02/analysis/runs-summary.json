@@ -1,0 +1,135 @@
+{
+  "experiment": "pylint-dev__pylint-4970",
+  "runs_directory": "experiments/pylint-dev__pylint-4970/results/plan-02/runs",
+  "analysis_directory": "experiments/pylint-dev__pylint-4970/results/plan-02/analysis",
+  "generated_at": "2026-04-08T22:26:19.111979+00:00",
+  "total_runs": 5,
+  "successful_runs": 5,
+  "failed_runs": 0,
+  "status_breakdown": {
+    "success": 5
+  },
+  "run_statuses": [
+    {
+      "run_id": 1,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T21:35:20.157626+00:00",
+      "end_time": "2026-04-08T22:13:48.249603+00:00",
+      "changed_files_count": 5,
+      "diff_size": 250970,
+      "error": ""
+    },
+    {
+      "run_id": 2,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T22:14:04.090032+00:00",
+      "end_time": "2026-04-08T22:17:18.171019+00:00",
+      "changed_files_count": 5,
+      "diff_size": 248578,
+      "error": ""
+    },
+    {
+      "run_id": 3,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T22:17:23.838774+00:00",
+      "end_time": "2026-04-08T22:19:09.779948+00:00",
+      "changed_files_count": 5,
+      "diff_size": 231570,
+      "error": ""
+    },
+    {
+      "run_id": 4,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T22:19:15.022835+00:00",
+      "end_time": "2026-04-08T22:22:22.566484+00:00",
+      "changed_files_count": 5,
+      "diff_size": 287268,
+      "error": ""
+    },
+    {
+      "run_id": 5,
+      "status": "success",
+      "exit_code": 0,
+      "start_time": "2026-04-08T22:22:28.000921+00:00",
+      "end_time": "2026-04-08T22:26:14.772893+00:00",
+      "changed_files_count": 5,
+      "diff_size": 248222,
+      "error": ""
+    }
+  ],
+  "statistics": {
+    "files_changed": {
+      "min": 5,
+      "max": 5,
+      "avg": 5.0,
+      "range": 0
+    },
+    "diff_size_bytes": {
+      "min": 231570,
+      "max": 287268,
+      "avg": 253321.6,
+      "range": 55698
+    }
+  },
+  "durations_seconds": {
+    "min": 105.941174,
+    "max": 2308.091977,
+    "avg": 604.4859518000001,
+    "range": 2202.150803
+  },
+  "tokens": {
+    "average_input_tokens": 27026.4,
+    "average_output_tokens": 2721.2,
+    "average_cache_read_input_tokens": 1508416.0,
+    "average_total_tokens": 29747.6
+  },
+  "validation": {
+    "total_validated": 5,
+    "average_functional_score": 1.0,
+    "average_regression_score": 1.0,
+    "average_overall_score": 1.0,
+    "perfect_runs": 5,
+    "test_file_created_count": 0,
+    "per_run": [
+      {
+        "run_id": 1,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 2,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 3,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 4,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      },
+      {
+        "run_id": 5,
+        "functional": 1.0,
+        "regression": 1.0,
+        "overall": 1.0,
+        "test_file_created": false
+      }
+    ]
+  }
+}

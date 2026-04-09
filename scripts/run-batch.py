@@ -70,12 +70,6 @@ def parse_args():
         help="Print what would be done without executing",
     )
     parser.add_argument(
-        "--execution-mode",
-        choices=["host", "docker"],
-        default="host",
-        help="Run Claude Code on host or inside Docker (default: host)",
-    )
-    parser.add_argument(
         "--claude-permission-mode",
         default="acceptEdits",
         help="Permission mode for Claude Code (default: acceptEdits)",
@@ -114,7 +108,15 @@ def docker_image_exists(tag: str) -> bool:
     return result.returncode == 0
 
 
-def derive_image_tag(instance_id: str) -> str:
+def derive_image_tag(instance_id: str, exp_dir: Optional[Path] = None) -> str:
+    # Prefer the tag saved by build-env.py (e.g. claude-swe-env:*)
+    if exp_dir:
+        image_file = exp_dir / "env-image.txt"
+        if image_file.exists():
+            tag = image_file.read_text().strip()
+            if tag:
+                return tag
+    # Fallback: derive from instance_id
     suffix = instance_id.replace("/", "-").replace("__", "-")
     return f"swe-env:{suffix}"
 
@@ -155,13 +157,12 @@ def run_task(
     runs_per_plan: int,
     rebuild_env: bool,
     dry_run: bool,
-    execution_mode: str = "host",
     claude_permission_mode: str = "acceptEdits",
     docker_cpus: Optional[str] = None,
     docker_memory: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Run multi-plan experiment for a single task."""
-    image_tag = derive_image_tag(instance_id)
+    image_tag = derive_image_tag(instance_id, exp_dir)
     plan_files = get_plan_files(exp_dir)
 
     result: Dict[str, Any] = {
@@ -178,8 +179,6 @@ def run_task(
     if should_build:
         print(f"  Building image: {image_tag}")
         cmd = [sys.executable, str(BUILD_ENV_SCRIPT), str(exp_dir)]
-        if execution_mode == "docker":
-            cmd.append("--with-claude")
         if dry_run:
             print(f"  [DRY RUN] Would run: {' '.join(cmd)}")
         else:
@@ -189,21 +188,6 @@ def run_task(
                 result["status"] = "build_failed"
                 result["skip_reason"] = f"Docker build failed (exit {e.returncode})"
                 return result
-    elif execution_mode == "docker":
-        # Also check if executor image exists
-        executor_tag = f"claude-executor:{image_tag.split(':', 1)[-1]}" if ":" in image_tag else f"claude-executor:{image_tag}"
-        if not docker_image_exists(executor_tag):
-            print(f"  Building executor image: {executor_tag}")
-            cmd = [sys.executable, str(BUILD_ENV_SCRIPT), str(exp_dir), "--with-claude"]
-            if dry_run:
-                print(f"  [DRY RUN] Would run: {' '.join(cmd)}")
-            else:
-                try:
-                    subprocess.run(cmd, check=True)
-                except subprocess.CalledProcessError as e:
-                    result["status"] = "build_failed"
-                    result["skip_reason"] = f"Executor image build failed (exit {e.returncode})"
-                    return result
     else:
         print(f"  Image exists: {image_tag}")
 
@@ -213,7 +197,6 @@ def run_task(
         str(RUN_MULTI_PLAN_SCRIPT),
         str(exp_dir),
         "--runs", str(runs_per_plan),
-        "--execution-mode", execution_mode,
         "--claude-permission-mode", claude_permission_mode,
     ]
     if docker_cpus:
@@ -281,7 +264,6 @@ def main():
             runs_per_plan=args.runs,
             rebuild_env=args.rebuild_env,
             dry_run=args.dry_run,
-            execution_mode=args.execution_mode,
             claude_permission_mode=args.claude_permission_mode,
             docker_cpus=args.docker_cpus,
             docker_memory=args.docker_memory,

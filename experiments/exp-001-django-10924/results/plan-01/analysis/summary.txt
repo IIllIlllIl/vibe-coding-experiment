@@ -1,5 +1,5 @@
 Experiment: exp-001-django-10924
-Runs directory: /Users/taoran.wang/Library/CloudStorage/OneDrive-UniversityofLuxembourg/Documents/vibe-trust/Planing/vibe-coding-experiment/experiments/exp-001-django-10924/results/plan-01/runs
+Runs directory: experiments/exp-001-django-10924/results/plan-01/runs
 Generated: 2026-03-30T17:18:15.561349+00:00
 Total runs: 10
 Successful: 10
